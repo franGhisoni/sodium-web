@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react';
 
 /**
  * Background system — generates the salt/snow grain ONCE in a canvas,
- * tiles it as a fixed background. No animation on background-image
- * (avoids the lag of Claude Design's feTurbulence approach).
+ * tiles it as a fixed background, then moves the layers with CSS animation
+ * and scroll-linked parallax.
  *
  * Spec from Figma: 5px particles · 33% density ·
  *   colour A #809EC1 @ 66% · colour B #FFFFFF @ 40% · 2px blur.
@@ -48,7 +48,10 @@ function generateGrainDataURL(): string {
 }
 
 export function Background() {
+  const gradientRef = useRef<HTMLDivElement>(null);
+  const lightRef = useRef<HTMLDivElement>(null);
   const grainRef = useRef<HTMLDivElement>(null);
+  const vignetteRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!grainRef.current) return;
@@ -58,12 +61,55 @@ export function Background() {
     }
   }, []);
 
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
+
+    let frame = 0;
+
+    const applyParallax = () => {
+      frame = 0;
+      const y = window.scrollY;
+
+      if (gradientRef.current) {
+        gradientRef.current.style.transform = `translate3d(0, ${y * -0.035}px, 0) scale(1.04)`;
+      }
+
+      if (lightRef.current) {
+        lightRef.current.style.transform = `translate3d(0, ${y * -0.075}px, 0) scale(1.03)`;
+      }
+
+      if (grainRef.current) {
+        grainRef.current.style.transform = `translate3d(0, ${y * -0.14}px, 0)`;
+      }
+
+      if (vignetteRef.current) {
+        vignetteRef.current.style.transform = `translate3d(0, ${y * -0.02}px, 0)`;
+      }
+    };
+
+    const requestParallax = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(applyParallax);
+    };
+
+    applyParallax();
+    window.addEventListener('scroll', requestParallax, { passive: true });
+    window.addEventListener('resize', requestParallax);
+
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', requestParallax);
+      window.removeEventListener('resize', requestParallax);
+    };
+  }, []);
+
   return (
     <>
-      <div className="bg-gradient" aria-hidden="true" />
-      <div className="bg-light-field" aria-hidden="true" />
+      <div ref={gradientRef} className="bg-gradient" aria-hidden="true" />
+      <div ref={lightRef} className="bg-light-field" aria-hidden="true" />
       <div ref={grainRef} className="bg-grain" aria-hidden="true" />
-      <div className="bg-vignette" aria-hidden="true" />
+      <div ref={vignetteRef} className="bg-vignette" aria-hidden="true" />
     </>
   );
 }

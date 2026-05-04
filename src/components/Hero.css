@@ -115,11 +115,11 @@
 .btn-ghost {
   color: var(--ink);
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.035) 64%),
-    rgba(18, 42, 62, 0.26);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.016) 64%),
+    rgba(8, 22, 34, 0.045);
   border-color: rgba(255, 255, 255, 0.26);
-  backdrop-filter: url(#liquid-glass) blur(16px) saturate(1.55);
-  -webkit-backdrop-filter: url(#liquid-glass) blur(16px) saturate(1.55);
+  backdrop-filter: url(#liquid-glass) blur(1.6px) saturate(1.12) brightness(1.06);
+  -webkit-backdrop-filter: url(#liquid-glass) blur(1.6px) saturate(1.12) brightness(1.06);
 }
 .btn-ghost .btn-arrow {
   background: rgba(255, 255, 255, 0.10);
@@ -127,8 +127,8 @@
 }
 .btn-ghost:hover {
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.21), rgba(255, 255, 255, 0.055) 64%),
-    rgba(18, 42, 62, 0.30);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.026) 64%),
+    rgba(8, 22, 34, 0.06);
   border-color: var(--glass-edge-2);
   transform: translateY(-1px);
 }
@@ -166,7 +166,7 @@
 .hero-stage {
   position: relative;
   width: 100%;
-  min-height: 700px;
+  min-height: 760px;
   display: block;
   perspective: 1200px;
 }
@@ -180,7 +180,7 @@
 }
 
 .hero-card::before {
-  opacity: 0.82;
+  opacity: 0.38;
 }
 
 .hero-card:hover {
@@ -189,25 +189,25 @@
 }
 
 .hero-card-primary {
-  top: 34px;
+  top: 24px;
   left: 0;
-  right: 12%;
+  right: 8%;
   z-index: 2;
   padding: 30px;
 }
 
 .hero-card-notif {
-  top: 310px;
-  right: 2%;
-  width: 62%;
+  top: 420px;
+  right: 0;
+  width: 58%;
   z-index: 3;
   padding: 22px;
 }
 
 .hero-card-eco {
-  top: 505px;
+  top: 594px;
   left: 12%;
-  width: 64%;
+  width: 58%;
   z-index: 4;
   padding: 24px;
 }
@@ -256,6 +256,8 @@
   border-radius: 999px;
   border: 1px solid var(--line-2);
   background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: url(#liquid-glass) blur(5px) saturate(1.2);
+  -webkit-backdrop-filter: url(#liquid-glass) blur(5px) saturate(1.2);
   white-space: nowrap;
 }
 
@@ -372,7 +374,7 @@
   }
   .hero { padding: 56px 0 80px; }
   .hero-stage {
-    min-height: 700px;
+    min-height: 760px;
   }
 }
 
