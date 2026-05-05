@@ -202,108 +202,21 @@ img, svg { display: block; max-width: 100%; }
   box-shadow: 0 0 10px var(--accent), 0 0 2px var(--accent);
 }
 
-/* ─── Liquid glass primitive (Apple-style) ──────────────────────── */
+/* ─── Liquid glass primitive ────────────────────────────────────── */
 /*
- * The "Apple Liquid Glass" trick:
- *   1. backdrop-filter applies BOTH a small blur AND an SVG displacement map
- *      → bends pixels behind the card like a lens (real refraction).
- *   2. Ultra-thin background tint (~5% white) so the lensed view shows clearly.
- *   3. Bright sharp 1px highlight on the top edge (specular reflection).
- *   4. Inner glow along top-inside (the "wet" rim).
- *   5. Soft drop shadow underneath (lifts it off the surface).
+ * IMPORTANT: We do NOT define `.glass`, `.glass::before`, `.glass::after`,
+ * `.glass-soft` or `.glass-strong` here.
+ *
+ * `<GlassCard>` from `@developer-hub/liquid-glass` (wrapped via Glass.tsx)
+ * uses `className="glass"` INTERNALLY on its content wrapper. Any rules we
+ * defined for `.glass` would override the library's visuals — that was
+ * the source of the spurious top-right sheen and the "non-glass" look
+ * (custom backgrounds + sheen layered on top of the library effect).
+ *
+ * The displacement / blur / refraction is fully owned by the library.
+ * Layout-only classes (.cap-card, .case-card, .hero-card-*, .manifesto-card,
+ * .cta-card) are passed via the `className` prop on `<Glass>`.
  */
-
-.glass {
-  position: relative;
-  overflow: hidden;
-  border-radius: 24px;
-  background:
-    linear-gradient(142deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.026) 31%, rgba(255, 255, 255, 0.006) 62%, rgba(255, 255, 255, 0.035) 100%),
-    radial-gradient(120% 90% at 18% 0%, rgba(255, 255, 255, 0.08) 0%, transparent 46%),
-    var(--glass-fill);
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  /* Refraction + small blur + saturation. SVG filter from Filters.tsx. */
-  backdrop-filter: url(#liquid-glass) blur(1.4px) saturate(1.12) brightness(1.08);
-  -webkit-backdrop-filter: url(#liquid-glass) blur(1.4px) saturate(1.12) brightness(1.08);
-  box-shadow: var(--glass-shadow);
-  isolation: isolate;
-}
-
-.glass > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* — Bright specular highlight along the top edge (the "wet" reflection) — */
-.glass::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(
-    160deg,
-    rgba(255, 255, 255, 0.30) 0%,
-    rgba(255, 255, 255, 0.09) 14%,
-    rgba(255, 255, 255, 0.02) 38%,
-    rgba(255, 255, 255, 0) 66%
-  );
-  pointer-events: none;
-  mix-blend-mode: screen;
-}
-
-/* — Inner light rim: bright top-left, fading toward bottom-right — */
-.glass::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(
-    150deg,
-    rgba(255, 255, 255, 0.78) 0%,
-    rgba(255, 255, 255, 0.22) 20%,
-    rgba(255, 255, 255, 0.02) 48%,
-    rgba(255, 255, 255, 0.10) 76%,
-    rgba(255, 255, 255, 0.44) 100%
-  );
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  pointer-events: none;
-}
-
-/* — Variants — */
-
-.glass-soft {
-  background:
-    linear-gradient(142deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.014) 58%, rgba(255, 255, 255, 0.028)),
-    rgba(8, 22, 34, 0.035);
-  border-color: rgba(255, 255, 255, 0.20);
-  backdrop-filter: url(#liquid-glass) blur(1.2px) saturate(1.10) brightness(1.06);
-  -webkit-backdrop-filter: url(#liquid-glass) blur(1.2px) saturate(1.10) brightness(1.06);
-}
-
-.glass-strong {
-  background:
-    linear-gradient(140deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.032) 34%, rgba(255, 255, 255, 0.008) 62%, rgba(255, 255, 255, 0.046)),
-    radial-gradient(105% 82% at 14% 0%, rgba(255, 255, 255, 0.09) 0%, transparent 50%),
-    rgba(8, 24, 38, 0.060);
-  border-color: rgba(255, 255, 255, 0.38);
-  backdrop-filter: url(#liquid-glass-strong) blur(1.8px) saturate(1.14) brightness(1.10);
-  -webkit-backdrop-filter: url(#liquid-glass-strong) blur(1.8px) saturate(1.14) brightness(1.10);
-}
-
-/* — Fallback for browsers without backdrop-filter url() support (Firefox) — */
-@supports not (backdrop-filter: url(#liquid-glass)) {
-  .glass, .glass-soft, .glass-strong, .pill {
-    backdrop-filter: blur(2px) saturate(1.18);
-    -webkit-backdrop-filter: blur(2px) saturate(1.18);
-    background:
-      linear-gradient(142deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.025) 62%),
-      rgba(10, 26, 40, 0.12);
-  }
-}
 
 /* ─── Layout ─────────────────────────────────────────────────────── */
 

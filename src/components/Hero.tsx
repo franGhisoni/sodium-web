@@ -1,3 +1,4 @@
+import { Glass } from './Glass';
 import './Hero.css';
 
 export function Hero() {
@@ -62,7 +63,7 @@ export function Hero() {
 /* ─── Primary glass card: live strategy snapshot ─── */
 function HeroDashCard() {
   return (
-    <article className="glass glass-strong hero-card hero-card-primary">
+    <Glass variant="strong" className="hero-card hero-card-primary" padding="28px">
       <header className="hero-card-head">
         <div>
           <span className="hero-card-label">Now <span className="muted">04.26.26</span></span>
@@ -92,14 +93,14 @@ function HeroDashCard() {
           <span className="hero-stat-value">1,204</span>
         </div>
       </footer>
-    </article>
+    </Glass>
   );
 }
 
 /* ─── Secondary card: stacked top-right ─── */
 function HeroNotifCard() {
   return (
-    <article className="glass hero-card hero-card-notif">
+    <Glass variant="default" className="hero-card hero-card-notif" padding="20px">
       <header className="hero-card-head-mini">
         <span className="hero-card-label">Notificación</span>
         <span className="hero-card-time">14:02</span>
@@ -112,20 +113,20 @@ function HeroNotifCard() {
         <span className="pill-dot" />
         Internal Doc. 04
       </footer>
-    </article>
+    </Glass>
   );
 }
 
 /* ─── Tertiary card: ecosystem sparkline ─── */
 function HeroEcosystemCard() {
   return (
-    <article className="glass hero-card hero-card-eco">
+    <Glass variant="default" className="hero-card hero-card-eco" padding="22px">
       <header className="hero-card-head-mini">
         <span className="hero-card-label">Ecosistema</span>
         <span className="hero-eco-count"><strong>48</strong> nodos</span>
       </header>
       <Sparkline />
-    </article>
+    </Glass>
   );
 }
 

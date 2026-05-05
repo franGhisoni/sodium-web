@@ -1,10 +1,11 @@
+import { Glass } from './Glass';
 import './sections.css';
 
 export function CTA() {
   return (
     <section className="section cta" id="contacto">
       <div className="section-inner">
-        <div className="glass glass-strong cta-card">
+        <Glass variant="strong" className="cta-card" padding="72px 48px">
           <span className="pill">
             <span className="pill-dot" />
             CONTACTO
@@ -45,7 +46,7 @@ export function CTA() {
               LinkedIn
             </a>
           </div>
-        </div>
+        </Glass>
       </div>
     </section>
   );

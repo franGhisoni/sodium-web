@@ -19,39 +19,39 @@ export function Filters() {
       style={{ position: 'fixed', width: 0, height: 0, pointerEvents: 'none' }}
     >
       <defs>
-        {/* — Refraction: subtle organic lensing through the surface — */}
-        <filter id="liquid-glass" x="-10%" y="-10%" width="120%" height="120%">
+        {/* — Refraction for nav / pills / icons — visible bend on small surfaces — */}
+        <filter id="liquid-glass" x="-15%" y="-15%" width="130%" height="130%">
           <feTurbulence
             type="fractalNoise"
-            baseFrequency="0.012 0.012"
+            baseFrequency="0.010 0.012"
             numOctaves="2"
             seed="7"
             result="turbulence"
           />
-          <feGaussianBlur in="turbulence" stdDeviation="2" result="softTurbulence" />
+          <feGaussianBlur in="turbulence" stdDeviation="2.5" result="softTurbulence" />
           <feDisplacementMap
             in="SourceGraphic"
             in2="softTurbulence"
-            scale="40"
+            scale="90"
             xChannelSelector="R"
             yChannelSelector="G"
           />
         </filter>
 
-        {/* — Stronger refraction for hero/feature cards — */}
-        <filter id="liquid-glass-strong" x="-10%" y="-10%" width="120%" height="120%">
+        {/* — Stronger refraction for big surfaces — */}
+        <filter id="liquid-glass-strong" x="-15%" y="-15%" width="130%" height="130%">
           <feTurbulence
             type="fractalNoise"
-            baseFrequency="0.009 0.009"
+            baseFrequency="0.007 0.009"
             numOctaves="2"
             seed="13"
             result="turbulence"
           />
-          <feGaussianBlur in="turbulence" stdDeviation="3" result="softTurbulence" />
+          <feGaussianBlur in="turbulence" stdDeviation="3.5" result="softTurbulence" />
           <feDisplacementMap
             in="SourceGraphic"
             in2="softTurbulence"
-            scale="65"
+            scale="140"
             xChannelSelector="R"
             yChannelSelector="G"
           />

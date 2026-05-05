@@ -1,3 +1,4 @@
+import { Glass } from './Glass';
 import './sections.css';
 
 const CAPS = [
@@ -71,7 +72,7 @@ export function Capacidades() {
 
         <div className="cap-grid">
           {CAPS.map(c => (
-            <article key={c.n} className="glass cap-card">
+            <Glass key={c.n} className="cap-card" padding="26px 24px 22px">
               <header className="cap-head">
                 <span><strong>{c.n}</strong> · {c.kicker}</span>
               </header>
@@ -83,7 +84,7 @@ export function Capacidades() {
               <div className="cap-tags">
                 {c.tags.map(t => <span key={t} className="cap-tag">{t}</span>)}
               </div>
-            </article>
+            </Glass>
           ))}
         </div>
       </div>

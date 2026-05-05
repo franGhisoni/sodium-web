@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Glass } from './Glass';
 import './sections.css';
 
 interface Case {
@@ -86,7 +87,7 @@ export function Casos() {
 
         <div className="case-grid">
           {CASES.map((c, i) => (
-            <article key={c.id} className="glass case-card">
+            <Glass key={c.id} className="case-card" padding="18px">
               <CaseShot c={c} />
               <div className="case-meta">
                 <span>{c.tag}</span>
@@ -103,7 +104,7 @@ export function Casos() {
                   </a>
                 )}
               </div>
-            </article>
+            </Glass>
           ))}
         </div>
       </div>

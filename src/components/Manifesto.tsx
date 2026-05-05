@@ -1,11 +1,12 @@
 import { Logo } from './Logo';
+import { Glass } from './Glass';
 import './sections.css';
 
 export function Manifesto() {
   return (
     <section className="section manifesto" id="estudio">
       <div className="section-inner">
-        <div className="glass glass-strong manifesto-card">
+        <Glass variant="strong" className="manifesto-card" padding="56px">
           <span className="pill">
             <span className="pill-dot" />
             ESTUDIO
@@ -20,7 +21,7 @@ export function Manifesto() {
             <Logo size={18} />
             <span>SODIUM/SOFTWARE · BUENOS AIRES · 2026</span>
           </div>
-        </div>
+        </Glass>
       </div>
     </section>
   );
