@@ -51,15 +51,24 @@
   gap: 22px;
 }
 .cap-card {
-  padding: 26px 24px 22px;
   display: flex;
   flex-direction: column;
   min-height: 320px;
-  transition: transform 320ms var(--ease-out), border-color 320ms var(--ease-out);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 22px 48px -28px rgba(1, 8, 16, 0.85),
+    0 1px 0 rgba(255, 255, 255, 0.18) inset;
+  transition:
+    transform 320ms var(--ease-out),
+    border-color 320ms var(--ease-out),
+    box-shadow 320ms var(--ease-out);
 }
 .cap-card:hover {
   transform: translateY(-3px);
-  border-color: var(--glass-edge-2);
+  border-color: rgba(255, 255, 255, 0.26);
+  box-shadow:
+    0 28px 56px -28px rgba(1, 8, 16, 0.9),
+    0 1px 0 rgba(255, 255, 255, 0.24) inset;
 }
 .cap-head {
   display: flex;
@@ -138,15 +147,24 @@
   gap: 22px;
 }
 .case-card {
-  padding: 18px;
   display: flex;
   flex-direction: column;
   min-height: 380px;
-  transition: transform 320ms var(--ease-out), border-color 320ms var(--ease-out);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 22px 48px -28px rgba(1, 8, 16, 0.85),
+    0 1px 0 rgba(255, 255, 255, 0.18) inset;
+  transition:
+    transform 320ms var(--ease-out),
+    border-color 320ms var(--ease-out),
+    box-shadow 320ms var(--ease-out);
 }
 .case-card:hover {
   transform: translateY(-3px);
-  border-color: var(--glass-edge-2);
+  border-color: rgba(255, 255, 255, 0.26);
+  box-shadow:
+    0 28px 56px -28px rgba(1, 8, 16, 0.9),
+    0 1px 0 rgba(255, 255, 255, 0.24) inset;
 }
 .case-shot {
   position: relative;
@@ -350,8 +368,11 @@
 .manifesto-card {
   max-width: 980px;
   margin: 0 auto;
-  padding: 56px;
   border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 32px 64px -32px rgba(1, 8, 16, 0.9),
+    0 1px 0 rgba(255, 255, 255, 0.18) inset;
 }
 .manifesto-card .pill { margin-bottom: 26px; }
 .manifesto-text {
@@ -389,10 +410,13 @@
   max-width: 880px;
   margin: 0 auto;
   text-align: center;
-  padding: 72px 48px;
   border-radius: 28px;
   position: relative;
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 32px 64px -32px rgba(1, 8, 16, 0.9),
+    0 1px 0 rgba(255, 255, 255, 0.18) inset;
 }
 .cta-card .pill { margin-bottom: 24px; }
 .cta-title {
@@ -556,7 +580,6 @@
     text-align: left;
   }
   .footer-top { grid-template-columns: 1fr; gap: 48px; }
-  .manifesto-card, .cta-card { padding: 40px 28px; }
 }
 @media (max-width: 600px) {
   .stats-grid { grid-template-columns: 1fr; }

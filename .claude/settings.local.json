@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -oE \"className[^,;]{0,80}\" node_modules/@developer-hub/liquid-glass/dist/index.js)",
+      "Bash(grep -oE '[a-zA-Z$_]+\\\\.createElement\\\\\\(\"[a-z]+\"[^\\)]{0,200}' node_modules/@developer-hub/liquid-glass/dist/index.js)",
+      "Bash(grep -oE '\"glass[^\"]*\"|jsx[A-Z]?\\\\\\([^,]{1,30},' node_modules/@developer-hub/liquid-glass/dist/index.js)",
+      "Bash(grep -oE 'borderRadius[^,;]{0,80}|\"border[A-Z][a-zA-Z]*\"|padding:[^,;]{0,40}|style:\\\\s*\\\\{[^}]{0,200}' node_modules/@developer-hub/liquid-glass/dist/index.js)",
+      "Bash(node -e ' *)",
+      "Bash(awk '/className: L/{flag=1; n=0} flag{print; n++; if\\(n>30\\) exit}' node_modules/@developer-hub/liquid-glass/dist/index.js)",
+      "Bash(ls \"C:/Users/ghiso/Desktop/code/portfolio\")",
+      "Bash(ls C:\\\\\\\\Users\\\\\\\\ghiso\\\\\\\\Desktop\\\\\\\\code\\\\\\\\)",
+      "Bash(git -C \"C:/Users/ghiso/Desktop/code/portafolio\" log --all --oneline)",
+      "Bash(git -C \"C:/Users/ghiso/Desktop/code/portafolio\" log --all -p --follow src/components/ProjectsSection.tsx)"
+    ]
+  }
+}

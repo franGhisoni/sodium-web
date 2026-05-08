@@ -4,23 +4,63 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  padding: 14px 0;
-  background: linear-gradient(
-    180deg,
-    rgba(7, 22, 35, 0.46) 0%,
-    rgba(7, 22, 35, 0.18) 60%,
-    transparent 100%
-  );
-  backdrop-filter: url(#liquid-glass) blur(22px) saturate(1.6);
-  -webkit-backdrop-filter: url(#liquid-glass) blur(22px) saturate(1.6);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.13);
+  padding: 18px 0;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
 }
 
-.nav-inner {
+/* Pill shell — controls width transition */
+.nav-pill {
+  pointer-events: auto;
+  width: min(1080px, calc(100% - 32px));
+  transition: width 720ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nav--scrolled .nav-pill {
+  width: min(880px, calc(100% - 32px));
+}
+
+/* Make Glass component fill the pill width */
+.nav-pill .nav-pill-glass {
+  width: 100%;
+}
+
+/* Library wraps children inside .glass > div — force it to span the pill */
+.nav-pill-glass > .glass > div {
+  width: 100%;
+}
+
+/* Override the GlassCard library's inline styles so the glass effect
+   only shows on scroll. We animate via opacity (warp layer) + box-shadow. */
+.nav-pill-glass > .glass {
+  box-shadow: 0 0 0 0 rgba(0, 0, 0, 0) !important;
+  transition:
+    box-shadow 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 600ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+  border: 1px solid transparent;
+}
+.nav-pill-glass > .glass > .glass__warp {
+  opacity: 0;
+  transition: opacity 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nav--scrolled .nav-pill-glass > .glass {
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 22px 48px -28px rgba(1, 8, 16, 0.85),
+    0 1px 0 rgba(255, 255, 255, 0.18) inset !important;
+}
+.nav--scrolled .nav-pill-glass > .glass > .glass__warp {
+  opacity: 1;
+}
+
+/* Foreground content layout */
+.nav-pill-content {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 24px;
+  width: 100%;
 }
 
 .nav-brand {
@@ -117,7 +157,8 @@
 }
 
 @media (max-width: 880px) {
-  .nav-inner { grid-template-columns: 1fr auto; }
+  .nav-pill-content { grid-template-columns: 1fr auto; }
+  .nav--scrolled .nav-pill { width: min(640px, calc(100% - 24px)); }
   .nav-links { display: none; }
 }
 
@@ -126,10 +167,14 @@
     padding: 12px 0;
   }
 
-  .nav-inner {
+  .nav-pill-content {
     display: flex;
     justify-content: space-between;
     gap: 12px;
+  }
+
+  .nav--scrolled .nav-pill {
+    width: calc(100% - 20px);
   }
 
   .nav-brand {
@@ -143,9 +188,6 @@
 
   .nav-cta {
     padding: 9px;
-    position: fixed;
-    right: 18px;
-    top: 13px;
   }
 
   .nav-cta span:first-child {

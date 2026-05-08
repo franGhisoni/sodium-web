@@ -137,6 +137,17 @@ img, svg { display: block; max-width: 100%; }
   to { transform: translate3d(-7vw, 8vh, 0); background-position: -260px 520px; }
 }
 
+/* Fine static noise — film grain across the entire viewport */
+.bg-noise {
+  position: fixed;
+  inset: 0;
+  z-index: -6;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  opacity: 0.5;
+}
+
 /* Subtle vignette */
 .bg-vignette {
   position: fixed;
@@ -226,6 +237,11 @@ img, svg { display: block; max-width: 100%; }
   padding: 0 var(--gutter);
 }
 main { display: block; }
+
+.glass-wrap > .glass {
+  width: 100%;
+  box-sizing: border-box;
+}
 
 ::selection {
   background: rgba(169, 200, 227, 0.35);

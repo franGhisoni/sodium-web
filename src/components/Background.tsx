@@ -109,6 +109,7 @@ export function Background() {
       <div ref={gradientRef} className="bg-gradient" aria-hidden="true" />
       <div ref={lightRef} className="bg-light-field" aria-hidden="true" />
       <div ref={grainRef} className="bg-grain" aria-hidden="true" />
+      <div className="bg-noise" aria-hidden="true" />
       <div ref={vignetteRef} className="bg-vignette" aria-hidden="true" />
     </>
   );

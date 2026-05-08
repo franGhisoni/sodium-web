@@ -39,7 +39,7 @@ export function Glass({
 
   return (
     <GlassCard
-      className={className}
+      className={['glass-wrap', className].filter(Boolean).join(' ')}
       style={style}
       padding={padding}
       cornerRadius={cornerRadius ?? p.cornerRadius}
