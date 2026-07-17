@@ -14,6 +14,7 @@ export function Footer() {
             <div>
               <h5>Estudio</h5>
               <a href="#estudio">Manifiesto</a>
+              <a href="#faq">FAQ</a>
               <a href="#">Equipo</a>
               <a href="#">Notas</a>
               <a href="#">GitHub</a>

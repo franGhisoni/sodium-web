@@ -10,7 +10,16 @@
       "Bash(ls \"C:/Users/ghiso/Desktop/code/portfolio\")",
       "Bash(ls C:\\\\\\\\Users\\\\\\\\ghiso\\\\\\\\Desktop\\\\\\\\code\\\\\\\\)",
       "Bash(git -C \"C:/Users/ghiso/Desktop/code/portafolio\" log --all --oneline)",
-      "Bash(git -C \"C:/Users/ghiso/Desktop/code/portafolio\" log --all -p --follow src/components/ProjectsSection.tsx)"
+      "Bash(git -C \"C:/Users/ghiso/Desktop/code/portafolio\" log --all -p --follow src/components/ProjectsSection.tsx)",
+      "Bash(git -C \"C:/Users/ghiso/Desktop/code/sodium-web\" status --short)",
+      "Bash(git -C \"C:/Users/ghiso/Desktop/code/portafolio\" status --short)",
+      "Bash(git -C \"C:/Users/ghiso/Desktop/code/hermes-landing\" status --short)",
+      "Bash(git -C \"C:/Users/ghiso/Desktop/code/sodium-web\" remote -v)",
+      "Bash(git -C \"C:/Users/ghiso/Desktop/code/sodium-web\" status -sb)",
+      "Bash(git -C \"C:/Users/ghiso/Desktop/code/portafolio\" remote -v)",
+      "Bash(git -C \"C:/Users/ghiso/Desktop/code/portafolio\" status -sb)",
+      "Bash(git -C \"C:/Users/ghiso/Desktop/code/hermes-landing\" remote -v)",
+      "Bash(git -C \"C:/Users/ghiso/Desktop/code/hermes-landing\" diff components/Header.tsx)"
     ]
   }
 }

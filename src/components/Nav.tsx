@@ -36,6 +36,7 @@ export function Nav() {
               <a href="#casos">Casos</a>
               <a href="#proceso">Proceso</a>
               <a href="#estudio">Estudio</a>
+              <a href="#faq">FAQ</a>
             </nav>
 
             <a href="#contacto" className="nav-cta">

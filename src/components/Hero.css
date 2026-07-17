@@ -171,6 +171,17 @@
   perspective: 1200px;
 }
 
+/* — 3D salt crystal (NaCl = cubic halite) behind the glass cards — */
+.hero-crystal {
+  position: absolute;
+  inset: -14% -22% -10% -18%;
+  width: 140%;
+  height: 124%;
+  z-index: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 0 60px rgba(127, 170, 207, 0.18));
+}
+
 .hero-card {
   position: absolute;
   isolation: isolate;
@@ -390,6 +401,7 @@
     flex-direction: column;
     gap: 18px;
   }
+  .hero-crystal { display: none; }
   .hero-card { position: relative; inset: auto; width: 100%; }
   .hero-meta { grid-template-columns: 1fr; gap: 18px; }
 }

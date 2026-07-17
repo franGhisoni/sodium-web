@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Glass } from './Glass';
 import './sections.css';
 
@@ -21,6 +21,15 @@ const CASES: Case[] = [
     stat: '+187% leads calificados / mes',
     live: 'https://peitho.ghisoni.com.ar/',
     shot: ShotPeitho,
+  },
+  {
+    id: 'peitho-estates',
+    tag: 'AGENTE IA · REAL ESTATE',
+    name: 'Peitho · Real Estate',
+    desc: 'CRM inmobiliario con agente conversacional: pipeline de leads con scoring IA, agenda de visitas, siguiente mejor acción y reactivación de contactos fríos.',
+    stat: 'Score IA por lead · 5 etapas de pipeline',
+    live: 'https://demo.peitho.ghisoni.com.ar/',
+    shot: ShotPeithoEstates,
   },
   {
     id: 'hermes',
@@ -68,6 +77,8 @@ const CASES: Case[] = [
 ];
 
 export function Casos() {
+  const [active, setActive] = useState<Case | null>(null);
+
   return (
     <section className="section" id="casos">
       <div className="section-inner">
@@ -80,15 +91,20 @@ export function Casos() {
             Sistemas en operación. <em>Hoy.</em>
           </h2>
           <p className="section-sub">
-            Seis productos que fabricamos para clientes — agentes de IA, webs, dashboards
+            Siete productos que fabricamos para clientes — agentes de IA, webs, dashboards
             y CRMs — corriendo, midiéndose y aprendiendo.
           </p>
         </header>
 
         <div className="case-grid">
           {CASES.map((c, i) => (
-            <Glass key={c.id} className="case-card" padding="18px">
-              <CaseShot c={c} />
+            <Glass key={c.id} className="case-card" padding="18px" onClick={() => setActive(c)}>
+              <div className="case-shot">
+                <c.shot />
+                <span className="case-load-btn" aria-hidden="true">
+                  <span>+</span> Ver detalle
+                </span>
+              </div>
               <div className="case-meta">
                 <span>{c.tag}</span>
                 <span>/0{i + 1}</span>
@@ -99,7 +115,13 @@ export function Casos() {
                 <span className="case-stat-dot" />
                 <span>{c.stat}</span>
                 {c.live && (
-                  <a href={c.live} target="_blank" rel="noopener noreferrer" className="case-link">
+                  <a
+                    href={c.live}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="case-link"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     Ver live ↗
                   </a>
                 )}
@@ -108,42 +130,62 @@ export function Casos() {
           ))}
         </div>
       </div>
+
+      {active && <CaseModal c={active} onClose={() => setActive(null)} />}
     </section>
   );
 }
 
-function CaseShot({ c }: { c: Case }) {
-  const [embed, setEmbed] = useState(false);
-
-  if (c.live && embed) {
-    return (
-      <div className="case-shot">
-        <iframe
-          src={c.live}
-          loading="lazy"
-          title={c.name}
-          sandbox="allow-scripts allow-same-origin"
-        />
-        <a
-          href={c.live}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="case-load-btn"
-        >
-          Abrir ↗
-        </a>
-      </div>
-    );
-  }
+function CaseModal({ c, onClose }: { c: Case; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
 
   return (
-    <div className="case-shot">
-      <c.shot />
-      {c.live && (
-        <button type="button" className="case-load-btn" onClick={() => setEmbed(true)}>
-          <span>▶</span> Cargar live
+    <div className="case-modal-backdrop" onClick={onClose} role="presentation">
+      <div
+        className="case-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={c.name}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button type="button" className="case-modal-close" onClick={onClose} aria-label="Cerrar">
+          ✕
         </button>
-      )}
+        <div className="case-modal-shot">
+          <c.shot />
+        </div>
+        <div className="case-modal-body">
+          <span className="case-modal-tag">{c.tag}</span>
+          <h3 className="case-modal-name">{c.name}</h3>
+          <p className="case-modal-desc">{c.desc}</p>
+          <div className="case-modal-stat">
+            <span className="case-stat-dot" />
+            <span>{c.stat}</span>
+          </div>
+          <div className="case-modal-actions">
+            {c.live && (
+              <a href={c.live} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
+                Abrir demo
+                <span className="btn-arrow" aria-hidden="true">↗</span>
+              </a>
+            )}
+            <button type="button" className="btn btn-ghost" onClick={onClose}>
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -159,6 +201,42 @@ function ShotPeitho() {
       <text x="20" y="108" fontSize="28" fill="#1a1410" fontFamily="ui-sans-serif" fontWeight="600" letterSpacing="-1.2">que nunca duerme.</text>
       <rect x="20" y="128" width="110" height="28" rx="14" fill="#1a1410" />
       <text x="75" y="146" fontSize="10" fill="#f4ecd8" textAnchor="middle" fontFamily="ui-monospace, monospace" letterSpacing="1.5">AGENDAR DEMO →</text>
+    </svg>
+  );
+}
+
+function ShotPeithoEstates() {
+  const cols: Array<[string, number, Array<[string, string, number]>]> = [
+    ['NUEVO', 3, [['Sofia A.', 'Compra 3 amb · USD 180-220k', 94], ['Martin C.', 'Alquiler temp. · Palermo', 67]]],
+    ['CALIFICADO', 3, [['Diego F.', 'Inversión en pozo · USD 120k', 76], ['Carolina R.', 'Venta + recompra', 82]]],
+    ['VISITA', 1, [['Valentina P.', 'Primer hogar · Nuñez', 89]]],
+    ['OFERTA', 1, [['Hernan S.', 'Oferta por PH · USD 165k', 96]]],
+  ];
+  return (
+    <svg viewBox="0 0 280 175" preserveAspectRatio="xMidYMid slice">
+      <rect width="280" height="175" fill="#f8fafd" />
+      <text x="14" y="19" fontSize="9" fill="#0f1729" fontFamily="ui-sans-serif" fontWeight="700">Peitho <tspan fill="#2563eb">Real Estate</tspan></text>
+      <text x="14" y="31" fontSize="6.5" fill="#64748b" fontFamily="ui-monospace, monospace" letterSpacing="1">CRM + AGENTE CONVERSACIONAL · PIPELINE</text>
+      {cols.map(([title, count, cards], ci) => (
+        <g key={ci}>
+          <text x={14 + ci * 66} y="48" fontSize="6" fill="#64748b" fontFamily="ui-monospace, monospace" letterSpacing="1">{title}</text>
+          <circle cx={14 + ci * 66 + 48} cy="45.5" r="5" fill="#e3ebfa" />
+          <text x={14 + ci * 66 + 48} y="48" fontSize="6" fill="#2563eb" textAnchor="middle" fontFamily="ui-sans-serif" fontWeight="700">{count}</text>
+          {cards.map(([name, det, score], i) => (
+            <g key={i}>
+              <rect x={14 + ci * 66} y={56 + i * 52} width="58" height="46" rx="5" fill="#ffffff" stroke="#e2e8f0" strokeWidth="0.8" />
+              <text x={19 + ci * 66} y={68 + i * 52} fontSize="6.5" fill="#0f1729" fontFamily="ui-sans-serif" fontWeight="600">{name}</text>
+              <rect x={14 + ci * 66 + 42} y={61 + i * 52} width="12" height="8" rx="4" fill="#2563eb" />
+              <text x={14 + ci * 66 + 48} y={67.2 + i * 52} fontSize="5" fill="#ffffff" textAnchor="middle" fontFamily="ui-sans-serif" fontWeight="700">{score}</text>
+              <text x={19 + ci * 66} y={78 + i * 52} fontSize="4.6" fill="#64748b" fontFamily="ui-sans-serif">{det}</text>
+              <rect x={19 + ci * 66} y={86 + i * 52} width="16" height="7" rx="3.5" fill="#eff4fd" />
+              <text x={27 + ci * 66} y={91.4 + i * 52} fontSize="4.2" fill="#2563eb" textAnchor="middle" fontFamily="ui-sans-serif" fontWeight="600">IA</text>
+              <text x={40 + ci * 66} y={91.4 + i * 52} fontSize="4.2" fill="#94a3b8" fontFamily="ui-sans-serif">Avanzar →</text>
+            </g>
+          ))}
+        </g>
+      ))}
+      <text x="14" y="168" fontSize="6" fill="#94a3b8" fontFamily="ui-monospace, monospace" letterSpacing="0.5">SIGUIENTE MEJOR ACCIÓN · REACTIVACIÓN AUTOMÁTICA</text>
     </svg>
   );
 }

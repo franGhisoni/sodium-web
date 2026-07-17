@@ -1,4 +1,5 @@
 import { Glass } from './Glass';
+import { Crystal } from './Crystal';
 import './Hero.css';
 
 export function Hero() {
@@ -51,6 +52,7 @@ export function Hero() {
         </div>
 
         <div className="hero-stage">
+          <Crystal className="hero-crystal" />
           <HeroDashCard />
           <HeroNotifCard />
           <HeroEcosystemCard />

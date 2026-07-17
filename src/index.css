@@ -72,69 +72,25 @@ img, svg { display: block; max-width: 100%; }
 
 /* ─── Background system ──────────────────────────────────────────── */
 
+/* CSS fallback — only visible if WebGL is unavailable */
 .bg-gradient {
   position: fixed;
-  inset: -8vh -4vw;
+  inset: 0;
   z-index: -10;
-  will-change: transform;
   background:
     radial-gradient(105% 90% at 108% 34%, rgba(129, 174, 210, 0.78) 0%, rgba(77, 120, 153, 0.44) 34%, transparent 64%),
     radial-gradient(70% 80% at 8% 10%, rgba(0, 0, 0, 0.74) 0%, rgba(3, 12, 20, 0.58) 46%, transparent 70%),
     linear-gradient(118deg, #02070b 0%, #07131f 32%, #183148 58%, #3e6380 82%, #6d9dc5 100%);
 }
 
-.bg-light-field {
+/* WebGL frost/snow field — renders the whole scene */
+.bg-canvas {
   position: fixed;
-  inset: -10vh -5vw;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
   z-index: -9;
   pointer-events: none;
-  overflow: hidden;
-  will-change: transform;
-  background:
-    linear-gradient(105deg, rgba(0, 0, 0, 0.56) 0%, transparent 42%),
-    linear-gradient(285deg, rgba(204, 231, 252, 0.22) 0%, transparent 44%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 38%, rgba(255, 255, 255, 0.07) 100%);
-  mix-blend-mode: screen;
-  opacity: 0.72;
-}
-
-/* Salt/snow grain — generated once in canvas, applied as fixed image */
-.bg-grain {
-  position: fixed;
-  inset: -14vh -8vw;
-  z-index: -8;
-  pointer-events: none;
-  background-repeat: repeat;
-  background-size: 360px 360px;
-  background-position: 0 0;
-  mix-blend-mode: screen;
-  opacity: 0.62;
-  overflow: hidden;
-  will-change: transform, background-position;
-  animation: grainFall 46s linear infinite;
-}
-
-.bg-grain::before {
-  content: '';
-  position: absolute;
-  inset: -12%;
-  background-image: inherit;
-  background-repeat: repeat;
-  background-size: 520px 520px;
-  background-position: 0 0;
-  filter: blur(0.6px);
-  opacity: 0.34;
-  animation: grainFloat 78s linear infinite;
-}
-
-@keyframes grainFall {
-  from { background-position: 0 0; }
-  to { background-position: 180px 360px; }
-}
-
-@keyframes grainFloat {
-  from { transform: translate3d(0, 0, 0); background-position: 0 0; }
-  to { transform: translate3d(-7vw, 8vh, 0); background-position: -260px 520px; }
 }
 
 /* Fine static noise — film grain across the entire viewport */
@@ -241,6 +197,26 @@ main { display: block; }
 .glass-wrap > .glass {
   width: 100%;
   box-sizing: border-box;
+}
+
+/* ─── Scroll reveal ──────────────────────────────────────────────── */
+
+.reveal { opacity: 0; }
+.reveal-in {
+  animation: revealUp 850ms var(--ease-out) both;
+  animation-delay: var(--rd, 0ms);
+}
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
 }
 
 ::selection {

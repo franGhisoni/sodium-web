@@ -7,10 +7,14 @@ import { Casos } from './components/Casos';
 import { Proceso } from './components/Proceso';
 import { Stats } from './components/Stats';
 import { Manifesto } from './components/Manifesto';
+import { Faq } from './components/Faq';
 import { CTA } from './components/CTA';
 import { Footer } from './components/Footer';
+import { useReveal } from './useReveal';
 
 function App() {
+  useReveal();
+
   return (
     <>
       <Filters />
@@ -23,6 +27,7 @@ function App() {
         <Proceso />
         <Stats />
         <Manifesto />
+        <Faq />
         <CTA />
       </main>
       <Footer />
