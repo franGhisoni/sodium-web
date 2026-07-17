@@ -8,7 +8,7 @@ export function Footer() {
         <div className="footer-top">
           <div className="footer-mark">
             <Logo size={48} />
-            <p>Software factory enfocada en agentes de IA, web, scraping y dashboards.</p>
+            <p>IA aplicada a los flujos de trabajo que realmente mueven el negocio.</p>
           </div>
           <div className="footer-cols">
             <div>
@@ -21,11 +21,11 @@ export function Footer() {
             </div>
             <div>
               <h5>Capacidades</h5>
-              <a href="#capacidades">Agentes IA</a>
-              <a href="#capacidades">Webs</a>
-              <a href="#capacidades">Scraping</a>
-              <a href="#capacidades">Dashboards</a>
-              <a href="#capacidades">Operación</a>
+              <a href="#capacidades">Diagnóstico</a>
+              <a href="#capacidades">Flujos asistidos</a>
+              <a href="#capacidades">Agentes operativos</a>
+              <a href="#capacidades">Integraciones</a>
+              <a href="#capacidades">Adopción</a>
             </div>
             <div>
               <h5>Contacto</h5>

@@ -3,11 +3,15 @@ import './sections.css';
 const QUESTIONS = [
   {
     question: '¿Con qué tipo de proyectos trabajan?',
-    answer: 'Tomamos productos digitales con una necesidad concreta: automatizar una operación, lanzar una web que convierta, conectar herramientas o convertir datos dispersos en decisiones. Si el problema todavía está verde, lo definimos juntos en el brief.',
+    answer: 'Trabajamos con empresas y proyectos que quieren aplicar IA en una operación concreta: ventas, atención, análisis, conocimiento interno o tareas repetitivas. Si la oportunidad todavía no está clara, empezamos por mapear y priorizar.',
+  },
+  {
+    question: '¿Desarrollan modelos de IA propios?',
+    answer: 'No es nuestro objetivo. Elegimos los mejores modelos disponibles para cada caso y construimos el sistema que los conecta con tus datos, herramientas, reglas y equipo. Nuestro valor está en la aplicación, no en reinventar el modelo.',
   },
   {
     question: '¿Cuánto tarda un proyecto?',
-    answer: 'Un primer alcance y presupuesto llega en 48 horas. Luego, una landing o integración puntual puede salir en semanas; un producto o sistema a medida suele requerir entre 4 y 10 semanas de build.',
+    answer: 'Un primer diagnóstico y alcance llega en 48 horas. Una intervención puntual puede salir en semanas; un sistema integrado a varios flujos suele requerir entre 4 y 10 semanas de implementación.',
   },
   {
     question: '¿Trabajan con nuestro equipo interno?',

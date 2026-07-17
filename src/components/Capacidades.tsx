@@ -4,50 +4,50 @@ import './sections.css';
 const CAPS = [
   {
     n: '01',
-    kicker: 'AGENTES IA',
-    title: 'Chatbots que califican y cierran.',
-    body: 'Agentes en WhatsApp, Instagram y web. Califican leads, agendan, integran al CRM y nunca duermen.',
-    tags: ['GPT-5', 'Claude', 'RAG', 'Webhooks'],
-    icon: IconAgent,
+    kicker: 'DIAGNÓSTICO',
+    title: 'Encontramos dónde la IA cambia el resultado.',
+    body: 'Mapeamos la operación, detectamos fricción y priorizamos el punto donde intervenir genera una mejora significativa.',
+    tags: ['Procesos', 'Oportunidades', 'Impacto', 'Roadmap'],
+    icon: IconDash,
   },
   {
     n: '02',
-    kicker: 'WEBS',
-    title: 'Sitios y landings que convierten.',
-    body: 'Webs corporativas, e-commerce, landings de campaña. Sistema de diseño propio, performance medible.',
-    tags: ['Next.js', 'Astro', 'Sanity', 'A/B test'],
-    icon: IconWeb,
+    kicker: 'FLUJOS ASISTIDOS',
+    title: 'El trabajo cambia, no solo la herramienta.',
+    body: 'Rediseñamos flujos para que la IA prepare, sintetice, recomiende y acelere; el equipo conserva contexto y decisión.',
+    tags: ['Copilotos', 'Decisiones', 'Human-in-loop'],
+    icon: IconAgent,
   },
   {
     n: '03',
-    kicker: 'SCRAPING',
-    title: 'Datos que tu competencia esconde.',
-    body: 'Scrapers resilientes para precios, listados, noticias o catálogos. Pipeline limpio, deduplicado y enriquecido por LLM.',
-    tags: ['Playwright', 'Python', 'Queue', 'LLM clean'],
+    kicker: 'CONOCIMIENTO',
+    title: 'La información aparece cuando hace falta.',
+    body: 'Conectamos documentos, conversaciones y sistemas para que cada persona pueda encontrar y usar el conocimiento de la empresa.',
+    tags: ['Búsqueda', 'RAG', 'Contexto', 'Permisos'],
     icon: IconScrape,
   },
   {
     n: '04',
-    kicker: 'DASHBOARDS',
-    title: 'Telemetría que se entiende.',
-    body: 'Dashboards comerciales y operativos. Series temporales, drill-down, brush. Pensados para decidir.',
-    tags: ['Recharts', 'D3', 'Postgres', 'Insight AI'],
-    icon: IconDash,
+    kicker: 'AGENTES OPERATIVOS',
+    title: 'El trabajo avanza sin empujar cada paso.',
+    body: 'Implementamos agentes que reciben pedidos, coordinan acciones y resuelven tareas dentro de límites claros y observables.',
+    tags: ['Agentes', 'Guardrails', 'Trazabilidad', 'Escalamiento'],
+    icon: IconWeb,
   },
   {
     n: '05',
     kicker: 'INTEGRACIONES',
-    title: 'Stack que se habla solo.',
-    body: 'Conectamos lo que ya usás — Stripe, HubSpot, Shopify, Twilio, Notion — con el sistema que construimos.',
-    tags: ['REST', 'Webhooks', 'tRPC', 'OAuth'],
+    title: 'La IA trabaja con tu operación real.',
+    body: 'La conectamos con las herramientas y datos que tu equipo ya usa, sin obligarte a reemplazar todo el stack.',
+    tags: ['CRM', 'ERP', 'APIs', 'Datos'],
     icon: IconIntegr,
   },
   {
     n: '06',
-    kicker: 'OPERACIÓN',
-    title: 'On-call cuando algo se rompe.',
-    body: 'Monitoreo, alertas, SLA, retraining de modelos. Te entregamos el sistema funcionando — y lo mantenemos así.',
-    tags: ['Uptime', 'Sentry', 'SLO', '24/7'],
+    kicker: 'ADOPCIÓN',
+    title: 'El cambio se sostiene después de lanzar.',
+    body: 'Acompañamos al equipo, medimos uso y resultados, y ajustamos el sistema hasta que forme parte natural del trabajo.',
+    tags: ['Capacitación', 'Métricas', 'Mejora continua'],
     icon: IconOps,
   },
 ];
@@ -59,14 +59,14 @@ export function Capacidades() {
         <header className="section-head">
           <span className="pill">
             <span className="pill-dot" />
-            CAPACIDADES
+            CÓMO INTERVENIMOS
           </span>
           <h2 className="section-title">
-            Seis disciplinas, <em>una sola fábrica.</em>
+            No automatizamos <em>por automatizar.</em>
           </h2>
           <p className="section-sub">
-            Construimos producto digital de punta a punta. Cada capacidad usa el mismo
-            equipo, los mismos estándares y la misma infraestructura — por eso encajan.
+            Buscamos el punto del flujo donde la IA libera capacidad, mejora una decisión
+            o acelera un resultado que realmente importa.
           </p>
         </header>
 

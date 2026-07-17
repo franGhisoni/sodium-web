@@ -88,11 +88,11 @@ export function Casos() {
             CASOS
           </span>
           <h2 className="section-title">
-            Sistemas en operación. <em>Hoy.</em>
+            Problemas reales. <em>Sistemas en operación.</em>
           </h2>
           <p className="section-sub">
-            Siete productos que fabricamos para clientes — agentes de IA, webs, dashboards
-            y CRMs — corriendo, midiéndose y aprendiendo.
+            Distintas formas de aplicar tecnología para mover una operación: vender mejor,
+            ordenar conocimiento, procesar información y acelerar decisiones.
           </p>
         </header>
 

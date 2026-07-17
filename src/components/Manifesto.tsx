@@ -12,10 +12,10 @@ export function Manifesto() {
             ESTUDIO
           </span>
           <p className="manifesto-text">
-            No hacemos demos. Hacemos <span className="hl">sistemas que viven</span>:
-            agentes que atienden a tus clientes mientras dormís, scrapers que llenan
-            tu base, dashboards que te dicen qué cambió. Lo construimos, lo lanzamos
-            y <strong>lo bancamos.</strong>
+            No desarrollamos una IA para competir con quienes lideran el mercado.
+            <span className="hl"> Usamos lo mejor que existe</span> para resolver los problemas
+            que realmente mueven tu negocio. Tecnología aplicada con criterio, integrada
+            a la operación y puesta en manos de quienes hacen el trabajo. <strong>Ahí aparece el valor.</strong>
           </p>
           <div className="manifesto-sig">
             <Logo size={18} />

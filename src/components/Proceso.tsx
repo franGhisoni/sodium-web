@@ -1,11 +1,11 @@
 import './sections.css';
 
 const STEPS = [
-  { n: '01', t: 'Brief', d: 'Te escuchamos sin slides. Salimos con un alcance escrito y un número.', dur: '48 h' },
-  { n: '02', t: 'Diseño', d: 'Sistema visual + flujos + prototipo navegable. Iteramos en Figma.', dur: '2–3 sem' },
-  { n: '03', t: 'Build', d: 'Sprints de una semana. Code review, despliegues continuos, demos los viernes.', dur: '4–10 sem' },
-  { n: '04', t: 'Lanzamiento', d: 'QA, migración, rampa de tráfico. On-call durante las primeras 72 h.', dur: '1 sem' },
-  { n: '05', t: 'Operación', d: 'Monitoreo, retraining, mejoras. Te entregamos el código y nos quedamos si querés.', dur: 'continuo' },
+  { n: '01', t: 'Entender', d: 'Nos metemos en la operación y hablamos con quienes hacen el trabajo todos los días.', dur: '48 h' },
+  { n: '02', t: 'Priorizar', d: 'Elegimos el problema donde una intervención puede generar impacto concreto y medible.', dur: '1 sem' },
+  { n: '03', t: 'Rediseñar', d: 'Definimos el nuevo flujo, qué hace la IA, qué decide el equipo y cómo se controla.', dur: '1–2 sem' },
+  { n: '04', t: 'Implementar', d: 'Integramos la mejor tecnología disponible con tus datos y herramientas actuales.', dur: '4–10 sem' },
+  { n: '05', t: 'Adoptar', d: 'Acompañamos al equipo, medimos resultados y mejoramos el sistema en uso real.', dur: 'continuo' },
 ];
 
 export function Proceso() {
@@ -18,7 +18,7 @@ export function Proceso() {
             PROCESO
           </span>
           <h2 className="section-title">
-            Cinco fases. <em>Sin teatro.</em>
+            Del flujo actual al <em>impacto real.</em>
           </h2>
         </header>
 

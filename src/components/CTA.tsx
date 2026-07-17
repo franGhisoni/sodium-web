@@ -15,8 +15,8 @@ export function CTA() {
             <strong>brief de 30 minutos.</strong>
           </h2>
           <p className="cta-sub">
-            Sin pitch, sin propuesta genérica. Te decimos si podemos ayudarte —
-            o a quién llamar.
+            Contanos qué parte de tu operación necesita cambiar. Encontramos juntos
+            dónde la IA puede generar impacto real.
           </p>
 
           <form
