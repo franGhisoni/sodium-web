@@ -2,6 +2,7 @@ import { Background } from './components/Background';
 import { Filters } from './components/Filters';
 import { Nav } from './components/Nav';
 import { Hero } from './components/Hero';
+import { Clientes } from './components/Clientes';
 import { Capacidades } from './components/Capacidades';
 import { Casos } from './components/Casos';
 import { Proceso } from './components/Proceso';
@@ -22,6 +23,7 @@ function App() {
       <Nav />
       <main>
         <Hero />
+        <Clientes />
         <Capacidades />
         <Casos />
         <Proceso />

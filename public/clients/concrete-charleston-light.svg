@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 64" fill="none">
+  <g transform="translate(4, 2) scale(0.22)">
+    <path d="M120 18 L26 72 L26 198 L120 252 L120 206 L62 172 L62 98 L120 64 Z" fill="#00A3E0" />
+    <path d="M150 18 L244 72 L244 198 L150 252 L150 206 L208 172 L208 98 L150 64 Z" fill="#475569" />
+  </g>
+  <text x="74" y="30" font-family="'Inter', sans-serif" font-weight="900" font-size="20" letter-spacing="1.5" fill="#1A1A1A">CONCRETE</text>
+  <text x="74" y="49" font-family="'Inter', sans-serif" font-weight="400" font-size="13" letter-spacing="3.5" fill="#64748B">CHARLESTON</text>
+</svg>

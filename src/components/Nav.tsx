@@ -32,6 +32,7 @@ export function Nav() {
             </a>
 
             <nav className="nav-links" aria-label="Principal">
+              <a href="#clientes">Clientes</a>
               <a href="#capacidades">Capacidades</a>
               <a href="#casos">Casos</a>
               <a href="#proceso">Proceso</a>
