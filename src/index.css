@@ -93,28 +93,14 @@ img, svg { display: block; max-width: 100%; }
   pointer-events: none;
 }
 
-/* Fine static noise — film grain across the entire viewport */
-.bg-noise {
+/* 3D crystal field — camera travels through it on scroll */
+.scene-canvas {
   position: fixed;
   inset: 0;
-  z-index: -6;
+  width: 100vw;
+  height: 100vh;
+  z-index: -8;
   pointer-events: none;
-  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  mix-blend-mode: overlay;
-  opacity: 0.5;
-}
-
-/* Subtle vignette */
-.bg-vignette {
-  position: fixed;
-  inset: -6vh -3vw;
-  z-index: -7;
-  pointer-events: none;
-  will-change: transform;
-  background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.46) 0%, transparent 42%, rgba(255, 255, 255, 0.08) 100%),
-    radial-gradient(110% 80% at 50% 0%, transparent 46%, rgba(7, 22, 35, 0.36) 100%),
-    radial-gradient(88% 62% at 50% 100%, transparent 58%, rgba(2, 8, 14, 0.38) 100%);
 }
 
 /* ─── Type primitives ────────────────────────────────────────────── */
@@ -156,8 +142,8 @@ img, svg { display: block; max-width: 100%; }
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.022) 62%),
     rgba(8, 22, 34, 0.045);
-  backdrop-filter: url(#liquid-glass) blur(1.8px) saturate(1.16) brightness(1.06);
-  -webkit-backdrop-filter: url(#liquid-glass) blur(1.8px) saturate(1.16) brightness(1.06);
+  backdrop-filter: blur(1.8px) saturate(1.16) brightness(1.06);
+  -webkit-backdrop-filter: blur(1.8px) saturate(1.16) brightness(1.06);
   box-shadow:
     0 12px 34px -22px rgba(1, 8, 16, 0.75),
     0 1px 0 rgba(255, 255, 255, 0.26) inset;
@@ -171,18 +157,11 @@ img, svg { display: block; max-width: 100%; }
 
 /* ─── Liquid glass primitive ────────────────────────────────────── */
 /*
- * IMPORTANT: We do NOT define `.glass`, `.glass::before`, `.glass::after`,
- * `.glass-soft` or `.glass-strong` here.
- *
  * `<GlassCard>` from `@developer-hub/liquid-glass` (wrapped via Glass.tsx)
- * uses `className="glass"` INTERNALLY on its content wrapper. Any rules we
- * defined for `.glass` would override the library's visuals — that was
- * the source of the spurious top-right sheen and the "non-glass" look
- * (custom backgrounds + sheen layered on top of the library effect).
- *
- * The displacement / blur / refraction is fully owned by the library.
- * Layout-only classes (.cap-card, .case-card, .hero-card-*, .manifesto-card,
- * .cta-card) are passed via the `className` prop on `<Glass>`.
+ * uses `className="glass"` INTERNALLY on its content wrapper, so we do not
+ * define `.glass` visuals here: displacement, blur and refraction belong to
+ * the library. Layout-only classes (.cap-card, .case-card, .hero-card-*,
+ * .manifesto-card, .cta-card) are passed via `className` on `<Glass>`.
  */
 
 /* ─── Layout ─────────────────────────────────────────────────────── */
@@ -197,6 +176,9 @@ main { display: block; }
 .glass-wrap > .glass {
   width: 100%;
   box-sizing: border-box;
+  /* Dark cool tint under the glass so small text keeps its contrast. */
+  background:
+    linear-gradient(160deg, rgba(4, 14, 26, 0.34), rgba(2, 8, 16, 0.46)) !important;
 }
 
 /* ─── Scroll reveal ──────────────────────────────────────────────── */
@@ -209,13 +191,11 @@ main { display: block; }
 @keyframes revealUp {
   from {
     opacity: 0;
-    transform: translateY(26px);
-    filter: blur(10px);
+    transform: translateY(22px);
   }
   to {
     opacity: 1;
     transform: none;
-    filter: none;
   }
 }
 

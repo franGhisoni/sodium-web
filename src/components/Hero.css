@@ -118,8 +118,8 @@
     linear-gradient(135deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.016) 64%),
     rgba(8, 22, 34, 0.045);
   border-color: rgba(255, 255, 255, 0.26);
-  backdrop-filter: url(#liquid-glass) blur(1.6px) saturate(1.12) brightness(1.06);
-  -webkit-backdrop-filter: url(#liquid-glass) blur(1.6px) saturate(1.12) brightness(1.06);
+  backdrop-filter: blur(1.6px) saturate(1.12) brightness(1.06);
+  -webkit-backdrop-filter: blur(1.6px) saturate(1.12) brightness(1.06);
 }
 .btn-ghost .btn-arrow {
   background: rgba(255, 255, 255, 0.10);
@@ -169,17 +169,6 @@
   min-height: 760px;
   display: block;
   perspective: 1200px;
-}
-
-/* — 3D salt crystal (NaCl = cubic halite) behind the glass cards — */
-.hero-crystal {
-  position: absolute;
-  inset: -14% -22% -10% -18%;
-  width: 140%;
-  height: 124%;
-  z-index: 1;
-  pointer-events: none;
-  filter: drop-shadow(0 0 60px rgba(127, 170, 207, 0.18));
 }
 
 .hero-card {
@@ -268,13 +257,13 @@
   font-size: 9.5px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--ink-2);
   padding: 5px 10px;
   border-radius: 999px;
   border: 1px solid var(--line-2);
   background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: url(#liquid-glass) blur(5px) saturate(1.2);
-  -webkit-backdrop-filter: url(#liquid-glass) blur(5px) saturate(1.2);
+  backdrop-filter: blur(5px) saturate(1.2);
+  -webkit-backdrop-filter: blur(5px) saturate(1.2);
   white-space: nowrap;
 }
 
@@ -303,17 +292,17 @@
   display: block;
   margin-bottom: 20px;
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 10.5px;
   letter-spacing: 0.14em;
-  color: var(--ink-4);
+  color: var(--ink-2);
 }
 .hero-workflow-step div { display: flex; flex-direction: column; gap: 4px; }
 .hero-workflow-step div span {
   font-family: var(--mono);
-  font-size: 8.5px;
+  font-size: 9.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--ink-4);
+  color: var(--ink-2);
 }
 .hero-workflow-step strong {
   font-size: 12px;
@@ -323,7 +312,7 @@
 }
 .hero-workflow-arrow {
   align-self: center;
-  color: var(--ink-4);
+  color: var(--ink-2);
   font-family: var(--mono);
   font-size: 11px;
 }
@@ -331,7 +320,7 @@
   margin: 0;
   padding-top: 16px;
   border-top: 1px solid var(--line);
-  color: var(--ink-3);
+  color: var(--ink-2);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -348,7 +337,7 @@
   font-family: var(--mono);
   font-size: 10px;
   letter-spacing: 0.12em;
-  color: var(--ink-4);
+  color: var(--ink-2);
 }
 
 .hero-notif-body {
@@ -426,7 +415,6 @@
     flex-direction: column;
     gap: 18px;
   }
-  .hero-crystal { display: none; }
   .hero-card { position: relative; inset: auto; width: 100%; }
   .hero-meta { grid-template-columns: 1fr; gap: 18px; }
   .hero-workflow { grid-template-columns: 1fr; }

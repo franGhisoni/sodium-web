@@ -1,10 +1,11 @@
 import { Background } from './components/Background';
-import { Filters } from './components/Filters';
+import { CrystalScene } from './components/Crystal';
 import { Nav } from './components/Nav';
 import { Hero } from './components/Hero';
 import { Clientes } from './components/Clientes';
 import { Capacidades } from './components/Capacidades';
 import { Casos } from './components/Casos';
+import { Marquee } from './components/Marquee';
 import { Proceso } from './components/Proceso';
 import { Stats } from './components/Stats';
 import { Manifesto } from './components/Manifesto';
@@ -12,20 +13,23 @@ import { Faq } from './components/Faq';
 import { CTA } from './components/CTA';
 import { Footer } from './components/Footer';
 import { useReveal } from './useReveal';
+import { useKinetic } from './kinetic';
 
 function App() {
   useReveal();
+  useKinetic();
 
   return (
     <>
-      <Filters />
       <Background />
+      <CrystalScene />
       <Nav />
       <main>
         <Hero />
         <Clientes />
         <Capacidades />
         <Casos />
+        <Marquee />
         <Proceso />
         <Stats />
         <Manifesto />

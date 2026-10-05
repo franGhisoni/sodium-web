@@ -1,0 +1,98 @@
+/* ─── Headings: rack focus ───────────────────────────────────────────
+   Words arrive out of focus, pushed back in depth and tilted, then the
+   "lens" pulls focus and dollies in — staggered word by word.            */
+
+.kinetic .kw {
+  display: inline-block;
+  opacity: 0;
+  filter: blur(14px);
+  transform: perspective(900px) translate3d(0, 0.18em, -160px) rotateX(-24deg) scale(1.08);
+  transform-origin: 50% 100%;
+  will-change: transform, filter, opacity;
+}
+.kinetic.kinetic-in .kw {
+  opacity: 1;
+  filter: blur(0);
+  transform: none;
+  transition:
+    opacity 650ms ease calc(var(--i) * 80ms),
+    filter 1000ms var(--ease-out) calc(var(--i) * 80ms),
+    transform 1200ms var(--ease-out) calc(var(--i) * 80ms);
+}
+
+/* Gradient text: words are their own boxes, so the clip lives on them. */
+.section-title em .kw,
+.hero-title-accent .kw {
+  background: linear-gradient(180deg, rgba(244, 248, 252, 1) 0%, rgba(169, 200, 227, 0.85) 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Hero copy drifts up as the page scrolls away from it. */
+.hero-copy {
+  transform: translate3d(0, calc(var(--hs, 0) * -54px), 0);
+}
+
+/* ─── Manifesto: words light up with scroll ──────────────────────── */
+
+.manifesto-text .sw {
+  opacity: var(--o, 1);
+  transition: opacity 120ms linear;
+}
+
+/* ─── Stats: stable digits while counting ────────────────────────── */
+
+.stat-num { font-variant-numeric: tabular-nums; }
+
+/* ─── Case thumbnails: wipe in with the card ─────────────────────── */
+
+.case-card.reveal-in .case-shot svg {
+  animation: shotWipe 640ms var(--ease-out) 90ms both;
+}
+@keyframes shotWipe {
+  from { clip-path: inset(0 100% 0 0); transform: scale(1.06); }
+  to   { clip-path: inset(0 0 0 0);    transform: none; }
+}
+
+/* ─── Marquee band ───────────────────────────────────────────────── */
+
+.mq {
+  position: relative;
+  padding: 36px 0 52px;
+  overflow: hidden;
+  user-select: none;
+}
+.mq-clip { overflow: hidden; }
+.mq-row {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+.mq-set { display: flex; flex: none; }
+.mq-item {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(28px, 4vw, 64px);
+  padding-right: clamp(28px, 4vw, 64px);
+  font-family: var(--sans);
+  font-size: clamp(64px, 11vw, 170px);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 1.02;
+  white-space: nowrap;
+}
+.mq-row--solid .mq-item { color: var(--ink); }
+.mq-row--outline .mq-item {
+  color: transparent;
+  -webkit-text-stroke: 1.4px rgba(244, 248, 252, 0.55);
+}
+.mq-dot {
+  flex: none;
+  width: 0.2em;
+  height: 0.2em;
+  background: var(--accent);
+  transform: rotate(45deg);
+  box-shadow: 0 0 24px rgba(169, 200, 227, 0.55);
+}
