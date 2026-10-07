@@ -420,3 +420,16 @@
   .hero-workflow { grid-template-columns: 1fr; }
   .hero-workflow-arrow { transform: rotate(90deg); justify-self: center; }
 }
+
+/* ── 3D crystal (three.js), behind the glass cards ── */
+.hero-crystal {
+  position: absolute;
+  inset: -80px -14% auto -10%;
+  height: 700px;
+  z-index: 6;
+  pointer-events: none;
+}
+.hero-crystal canvas { display: block; }
+@media (max-width: 900px) {
+  .hero-crystal { display: none; }
+}
