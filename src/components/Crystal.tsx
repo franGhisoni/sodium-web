@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
  * 3D salt-crystal field — raw WebGL, no dependencies.
  *
  * Sodium chloride crystallises in cubes (halite), so the scene is a field of
- * translucent cubes: additive fresnel-lit faces plus glowing wireframe edges
+ * translucent octahedra: additive fresnel-lit faces plus glowing wireframe edges
  * read as ice/salt crystal. A hero cluster sits beside the headline; more
  * cubes are scattered along a corridor the camera flies through on scroll.
  */
@@ -92,30 +92,25 @@ function trs(t: [number, number, number], s: number): M4 {
   return new Float32Array([s, 0, 0, 0, 0, s, 0, 0, 0, 0, s, 0, t[0], t[1], t[2], 1]);
 }
 
-/* ── cube geometry: 24 verts (pos+nrm interleaved), tris + edge lines ── */
+/* ── octahedron geometry: 8 flat triangles (pos+nrm interleaved), tris + edge lines ── */
 function cubeGeometry() {
-  const faces: Array<[number[], number[]]> = [
-    [[0, 0, 1], [-1, -1, 1, 1, -1, 1, 1, 1, 1, -1, 1, 1]],
-    [[0, 0, -1], [1, -1, -1, -1, -1, -1, -1, 1, -1, 1, 1, -1]],
-    [[1, 0, 0], [1, -1, 1, 1, -1, -1, 1, 1, -1, 1, 1, 1]],
-    [[-1, 0, 0], [-1, -1, -1, -1, -1, 1, -1, 1, 1, -1, 1, -1]],
-    [[0, 1, 0], [-1, 1, 1, 1, 1, 1, 1, 1, -1, -1, 1, -1]],
-    [[0, -1, 0], [-1, -1, -1, 1, -1, -1, 1, -1, 1, -1, -1, 1]],
-  ];
+  const R = 1.3; /* vertex radius — keeps the visual weight of the old cubes */
   const verts: number[] = [];
   const tris: number[] = [];
-  faces.forEach(([n, p], fi) => {
-    for (let v = 0; v < 4; v++) {
-      verts.push(p[v * 3], p[v * 3 + 1], p[v * 3 + 2], n[0], n[1], n[2]);
-    }
-    const b = fi * 4;
-    tris.push(b, b + 1, b + 2, b, b + 2, b + 3);
-  });
   const lines: number[] = [];
-  faces.forEach((_, fi) => {
-    const b = fi * 4;
-    lines.push(b, b + 1, b + 1, b + 2, b + 2, b + 3, b + 3, b);
-  });
+  let i = 0;
+  for (const sx of [1, -1])
+    for (const sy of [1, -1])
+      for (const sz of [1, -1]) {
+        const n = [sx, sy, sz].map((v) => v / Math.sqrt(3));
+        const flip = sx * sy * sz < 0; /* keep winding consistent */
+        const pts = [[sx * R, 0, 0], [0, sy * R, 0], [0, 0, sz * R]];
+        if (flip) pts.reverse();
+        for (const p of pts) verts.push(p[0], p[1], p[2], n[0], n[1], n[2]);
+        tris.push(i, i + 1, i + 2);
+        lines.push(i, i + 1, i + 1, i + 2, i + 2, i);
+        i += 3;
+      }
   return { verts: new Float32Array(verts), tris: new Uint16Array(tris), lines: new Uint16Array(lines) };
 }
 
@@ -326,7 +321,7 @@ function startScene(canvas: HTMLCanvasElement): (() => void) | null {
       if (fade < 0.01) continue;
 
       let local = mul(m4(), rotY(t * c.sp + c.ph), rotX(c.ph * 0.7));
-      local = mul(local, rotZ(0.615), local); /* rest on a corner, like real halite */
+      local = mul(local, rotZ(0.615), local); /* tilt so the octahedra catch the light */
       local = mul(local, trs([x, y, z], c.s), local);
       gl.uniformMatrix4fv(uModel, false, local);
       gl.uniform1f(uFade, fade);
