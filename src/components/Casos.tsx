@@ -9,12 +9,16 @@ interface Case {
   desc: string;
   stat: string;
   live?: string;
+  img?: string;
+  featured?: boolean;
+  chips?: string[];
   shot: () => React.ReactElement;
 }
 
 const CASES: Case[] = [
   {
     id: 'peitho',
+    img: '/cases/peitho.png',
     tag: 'AGENTE IA · COMERCIAL',
     name: 'Peitho',
     desc: 'Agente que atiende, califica y cierra leads por WhatsApp, Instagram y web. Integrado al CRM.',
@@ -24,6 +28,7 @@ const CASES: Case[] = [
   },
   {
     id: 'peitho-estates',
+    img: '/cases/peitho-estates.png',
     tag: 'AGENTE IA · REAL ESTATE',
     name: 'Peitho · Real Estate',
     desc: 'CRM inmobiliario con agente conversacional: pipeline de leads con scoring IA, agenda de visitas, siguiente mejor acción y reactivación de contactos fríos.',
@@ -50,6 +55,7 @@ const CASES: Case[] = [
   },
   {
     id: 'rosaura',
+    img: '/cases/rosaura.jpg',
     tag: 'WEB · HOSPITALITY',
     name: 'Rosaura',
     desc: 'Sitio para experiencia gastronómica premium de Escorihuela Gascón. Diseño editorial, reservas integradas.',
@@ -74,6 +80,27 @@ const CASES: Case[] = [
     stat: '60.450 registros operativos',
     shot: ShotZellgo,
   },
+  {
+    id: 'instituto-ghisoni',
+    img: '/cases/instituto.png',
+    tag: 'SISTEMA CLÍNICO · SALUD',
+    name: 'Instituto Ghisoni',
+    desc: 'Sistema clínico para consultorios de ginecología: agenda sin solapamientos, fichas de pacientes, consultas, estudios en PDF, roles con auditoría y migración del sistema anterior.',
+    stat: 'Agenda · Historia clínica · Roles y auditoría',
+    shot: ShotInstituto,
+  },
+  {
+    id: 'lakshmi',
+    img: '/cases/lakshmi.jpg',
+    tag: 'ECOSISTEMA · EXPERIENCIA 3D · AGENTE IA',
+    name: 'Lakshmi · Intencionate',
+    desc: 'Una reserva que se siente como un objeto: el golden ticket 3D se entrega con una animación de entrada, se gira con el dedo o el mouse y se rasga por la línea perforada para confirmar el turno. Detrás, un ecosistema completo para Lakshmi Masajes: sitio React, agente conversacional con la voz de la marca, vouchers de regalo y panel de gestión por roles.',
+    stat: 'Ticket 3D en tiempo real · reservas · vouchers · panel',
+    live: 'https://lakshmi.sodium.ghisoni.com.ar/ticket',
+    featured: true,
+    chips: ['WebGL / Three.js', 'Material holográfico', 'Talón con QR', 'Chat con IA', 'Panel por roles'],
+    shot: ShotLakshmi,
+  },
 ];
 
 export function Casos() {
@@ -96,11 +123,47 @@ export function Casos() {
           </p>
         </header>
 
+        {CASES.filter((c) => c.featured).map((c) => (
+          <Glass key={c.id} className="case-feature" padding="22px" onClick={() => setActive(c)}>
+            <div className="case-feature-inner">
+              <div className="case-shot case-feature-shot">
+                <CaseShot c={c} />
+              </div>
+              <div className="case-feature-body">
+                <span className="case-feature-badge">DESTACADO · EXPERIENCIA 3D</span>
+                <span className="case-meta-tag">{c.tag}</span>
+                <h3 className="case-feature-name">{c.name}</h3>
+                <p className="case-desc">{c.desc}</p>
+                <ul className="case-chips">
+                  {c.chips?.map((chip) => (
+                    <li key={chip}>{chip}</li>
+                  ))}
+                </ul>
+                <div className="case-stat">
+                  <span className="case-stat-dot" />
+                  <span>{c.stat}</span>
+                  {c.live && (
+                    <a
+                      href={c.live}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="case-link"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Probar el ticket 3D ↗
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Glass>
+        ))}
+
         <div className="case-grid">
-          {CASES.map((c, i) => (
+          {CASES.filter((c) => !c.featured).map((c, i) => (
             <Glass key={c.id} className="case-card" padding="18px" onClick={() => setActive(c)}>
               <div className="case-shot">
-                <c.shot />
+                <CaseShot c={c} />
                 <span className="case-load-btn" aria-hidden="true">
                   <span>+</span> Ver detalle
                 </span>
@@ -136,6 +199,13 @@ export function Casos() {
   );
 }
 
+function CaseShot({ c }: { c: Case }) {
+  if (c.img) {
+    return <img src={c.img} alt={`Captura de ${c.name}`} loading="lazy" decoding="async" />;
+  }
+  return <c.shot />;
+}
+
 function CaseModal({ c, onClose }: { c: Case; onClose: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -163,7 +233,7 @@ function CaseModal({ c, onClose }: { c: Case; onClose: () => void }) {
           ✕
         </button>
         <div className="case-modal-shot">
-          <c.shot />
+          <CaseShot c={c} />
         </div>
         <div className="case-modal-body">
           <span className="case-modal-tag">{c.tag}</span>
@@ -329,6 +399,72 @@ function ShotMetron() {
           <text x="266" y={92 + i * 18} fontSize="6" fill="#94a8bd" fontFamily="ui-monospace, monospace" textAnchor="end">{w}%</text>
         </g>
       ))}
+    </svg>
+  );
+}
+
+function ShotInstituto() {
+  const rows: Array<[string, string, string]> = [
+    ['09:00', 'Paciente A.', 'Consultorio 1'],
+    ['09:30', 'Paciente B.', 'Consultorio 2'],
+    ['10:00', 'Paciente C.', 'Consultorio 1'],
+    ['10:30', 'Paciente D.', 'Consultorio 2'],
+  ];
+  return (
+    <svg viewBox="0 0 280 175" preserveAspectRatio="xMidYMid slice">
+      <rect width="280" height="175" fill="#f6f9f9" />
+      <rect x="0" y="0" width="58" height="175" fill="#0f3d3e" />
+      <text x="10" y="20" fontSize="8" fill="#e6f2f1" fontFamily="ui-sans-serif" fontWeight="700">Instituto</text>
+      {['Agenda', 'Pacientes', 'Estudios', 'Config.'].map((n, i) => (
+        <text key={i} x="10" y={44 + i * 16} fontSize="7" fill={i === 0 ? '#ffffff' : '#8fb8b6'} fontFamily="ui-sans-serif">{n}</text>
+      ))}
+      <text x="72" y="22" fontSize="11" fill="#0f2a2b" fontFamily="ui-sans-serif" fontWeight="600">Agenda del día</text>
+      <text x="72" y="34" fontSize="6.5" fill="#5b7a79" fontFamily="ui-monospace, monospace" letterSpacing="1">DATOS FICTICIOS · DEMO</text>
+      {rows.map(([h, n, c], i) => (
+        <g key={i}>
+          <rect x="72" y={46 + i * 28} width="196" height="22" rx="4" fill="#ffffff" stroke="#d5e3e2" strokeWidth="0.8" />
+          <rect x="72" y={46 + i * 28} width="3" height="22" rx="1.5" fill={i % 2 ? '#2f9e9a' : '#0f3d3e'} />
+          <text x="82" y={60 + i * 28} fontSize="7" fill="#0f2a2b" fontFamily="ui-monospace, monospace" fontWeight="600">{h}</text>
+          <text x="118" y={60 + i * 28} fontSize="7" fill="#0f2a2b" fontFamily="ui-sans-serif">{n}</text>
+          <text x="262" y={60 + i * 28} fontSize="6" fill="#5b7a79" textAnchor="end" fontFamily="ui-sans-serif">{c}</text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function ShotLakshmi() {
+  return (
+    <svg viewBox="0 0 280 175" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="lakGlow" cx="0.5" cy="0.5" r="0.6">
+          <stop offset="0%" stopColor="#f2c96b" stopOpacity="0.28" />
+          <stop offset="100%" stopColor="#f2c96b" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id="lakGold" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stopColor="#f7e2a3" />
+          <stop offset="45%" stopColor="#d9a93f" />
+          <stop offset="100%" stopColor="#8a5f17" />
+        </linearGradient>
+      </defs>
+      <rect width="280" height="175" fill="#050505" />
+      <rect width="280" height="175" fill="url(#lakGlow)" />
+      {Array.from({ length: 28 }, (_, i) => (
+        <circle key={i} cx={(i * 97) % 280} cy={(i * 53) % 175} r={0.6 + (i % 3) * 0.4} fill="#f2e8d5" fillOpacity={0.25 + (i % 4) * 0.12} />
+      ))}
+      <g transform="rotate(-8 140 88)">
+        <rect x="50" y="52" width="180" height="76" rx="6" fill="url(#lakGold)" />
+        <rect x="55" y="57" width="170" height="66" rx="4" fill="none" stroke="#fff3c9" strokeOpacity="0.6" strokeWidth="0.6" />
+        <line x1="182" y1="54" x2="182" y2="126" stroke="#3b2a08" strokeOpacity="0.65" strokeWidth="1" strokeDasharray="2 3" />
+        <text x="66" y="80" fontSize="8" fill="#3b2a08" fontFamily="ui-serif, Georgia" letterSpacing="3">LAKSHMI</text>
+        <text x="66" y="104" fontSize="16" fill="#2a1d05" fontFamily="ui-serif, Georgia" fontStyle="italic">Volvé a vos</text>
+        <rect x="192" y="76" width="26" height="26" rx="2" fill="#2a1d05" fillOpacity="0.85" />
+        <rect x="196" y="80" width="6" height="6" fill="#f7e2a3" />
+        <rect x="208" y="80" width="6" height="6" fill="#f7e2a3" />
+        <rect x="196" y="92" width="6" height="6" fill="#f7e2a3" />
+        <rect x="206" y="90" width="4" height="4" fill="#f7e2a3" />
+      </g>
+      <text x="140" y="158" fontSize="6.5" fill="#d9d2c4" fillOpacity="0.7" textAnchor="middle" fontFamily="ui-monospace, monospace" letterSpacing="2.5">GOLDEN TICKET · 3D EN TIEMPO REAL</text>
     </svg>
   );
 }
