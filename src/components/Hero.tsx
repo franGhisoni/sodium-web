@@ -1,5 +1,17 @@
+import { lazy, Suspense } from 'react';
 import { Glass } from './Glass';
 import './Hero.css';
+
+const HeroCrystal = lazy(() => import('./HeroCrystal'));
+
+const canWebGL = (() => {
+  try {
+    return !!document.createElement('canvas').getContext('webgl');
+  } catch {
+    return false;
+  }
+})();
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export function Hero() {
   return (
@@ -51,6 +63,11 @@ export function Hero() {
         </div>
 
         <div className="hero-stage">
+          {canWebGL && !reduced && (
+            <Suspense fallback={null}>
+              <HeroCrystal />
+            </Suspense>
+          )}
           <HeroWorkflowCard />
           <HeroReviewCard />
           <HeroStackCard />
