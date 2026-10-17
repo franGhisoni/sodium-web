@@ -51,7 +51,7 @@ export function startPerfHud() {
         `worst   ${worst.toFixed(0)} ms`,
         `>20ms   ${Math.round((slow / n) * 100)}%`,
         `dpr     ${devicePixelRatio}`,
-        s ? `scene   ${s.width}x${s.height} q${s.quality.toFixed(2)}` : 'scene   off',
+        s ? `scene   ${s.width}x${s.height} @${s.quality}x` : 'scene   off',
       ].join('\n');
     }
     requestAnimationFrame(tick);

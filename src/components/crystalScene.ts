@@ -1091,10 +1091,9 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     slabs.delete(card);
   };
 
-  /* Adaptive resolution: drops a notch if frames run long. */
-  let quality = mobile ? 0.8 : 1;
-  /* Never adapt below this: on phones a lower floor reads as pixelation. */
-  const qualityFloor = mobile ? 0.75 : 0.5;
+  /* Full resolution up to 2x density (sharp on 3x phones without paying
+     for every physical pixel). */
+  const pixelRatio = Math.min(devicePixelRatio || 1, 2);
   let cssW = 1, cssH = 1;
   let sized = '';
   const buf = new Vector2();
@@ -1103,12 +1102,12 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
   const resize = () => {
     const w = Math.max(1, canvas.clientWidth);
     const h = Math.max(1, canvas.clientHeight);
-    const key = `${w}x${h}x${quality}`;
+    const key = `${w}x${h}`;
     if (key === sized) return;
     sized = key;
     cssW = w;
     cssH = h;
-    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5) * quality);
+    renderer.setPixelRatio(pixelRatio);
     renderer.setSize(cssW, cssH, false);
     renderer.getDrawingBufferSize(buf);
     const ww = buf.x, wh = buf.y;
@@ -1121,7 +1120,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     bgMat.uniforms.u_res.value.set(ww, wh);
     bgMat.uniforms.u_dpr.value = ww / cssW;
     bgMat.uniforms.u_view.value.set(cssW, cssH);
-    window.__scene = { quality, width: buf.x, height: buf.y };
+    window.__scene = { quality: pixelRatio, width: buf.x, height: buf.y };
   };
   resize();
 
@@ -1148,7 +1147,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
 
   let raf = 0;
   const t0 = performance.now();
-  let last = t0, slow = 0, frames = 0;
+  let last = t0;
   let prog01 = clamp(window.scrollY / maxScroll, 0, 1);
   let vel = 0;
   const v = new Vector3();
@@ -1169,18 +1168,6 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     const dt = Math.min(dtMs / 1000, 0.05);
     last = now;
     const t = reduced ? 0 : (now - t0) / 1000;
-
-    if (!reduced && dtMs < 200) {
-      slow += dtMs;
-      if (++frames === 45) {
-        if (slow / frames > 24 && quality > qualityFloor) {
-          quality = Math.max(qualityFloor, quality * 0.85);
-          resize();
-        }
-        slow = 0;
-        frames = 0;
-      }
-    }
 
     /* One scroll read per frame: this frame is drawn for it, and (touch)
        the canvas is moved to it, so DOM rects read below line up. */
