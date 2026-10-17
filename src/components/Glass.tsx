@@ -57,7 +57,7 @@ export function Glass({
   return (
     <div style={{ display: 'flex' }}>
       <div
-        className={['glass-wrap', `glass-wrap--${variant}`, className].filter(Boolean).join(' ')}
+        className={['glass-wrap', `glass-wrap--${variant}`, `glass-wrap--${material}`, className].filter(Boolean).join(' ')}
         style={{ ...style, borderRadius: radius }}
         onClick={onClick}
       >

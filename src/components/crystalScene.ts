@@ -689,7 +689,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
   renderer.outputColorSpace = SRGBColorSpace;
   const mobile = matchMedia('(max-width: 768px), (pointer: coarse)').matches;
   const touch = matchMedia('(pointer: coarse)').matches;
-  renderer.transmissionResolutionScale = mobile ? 0.35 : 0.5;
+  renderer.transmissionResolutionScale = 0.5;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const pmrem = new PMREMGenerator(renderer);
@@ -1075,9 +1075,8 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
 
   /* Adaptive resolution: drops a notch if frames run long. */
   let quality = mobile ? 0.8 : 1;
-  /* Phones draw the world (backdrop, beams, crystals) smaller; the card
-     pass upsamples it, and the slabs' own edges stay full resolution. */
-  const worldScale = mobile ? 0.7 : 1;
+  /* Never adapt below this: on phones a lower floor reads as pixelation. */
+  const qualityFloor = mobile ? 0.75 : 0.5;
   let cssW = 1, cssH = 1;
   let sized = '';
   const buf = new Vector2();
@@ -1094,8 +1093,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5) * quality);
     renderer.setSize(cssW, cssH, false);
     renderer.getDrawingBufferSize(buf);
-    const ww = Math.max(1, Math.round(buf.x * worldScale));
-    const wh = Math.max(1, Math.round(buf.y * worldScale));
+    const ww = buf.x, wh = buf.y;
     rtWorld.setSize(ww, wh);
     rtBeams.setSize(Math.max(1, buf.x >> 1), Math.max(1, buf.y >> 1));
     camera.aspect = cssW / cssH;
@@ -1156,8 +1154,8 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     if (!reduced && dtMs < 200) {
       slow += dtMs;
       if (++frames === 45) {
-        if (slow / frames > 24 && quality > 0.5) {
-          quality *= 0.85;
+        if (slow / frames > 24 && quality > qualityFloor) {
+          quality = Math.max(qualityFloor, quality * 0.85);
           resize();
         }
         slow = 0;
@@ -1261,7 +1259,11 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     cardSun.target.updateMatrixWorld();
     const liveCards = getCards();
     for (const [card, s] of slabs) if (!liveCards.has(card)) dropSlab(card, s);
-    for (const card of liveCards) {
+    /* Touch screens: no WebGL slabs. Phones scroll on the compositor, so a
+       canvas drawn from JS always trails the DOM by a frame or two; on a
+       fling that lag shows as the crystal jumping behind its card. The
+       cards there get a CSS crystal look that moves with them instead. */
+    for (const card of touch ? [] : liveCards) {
       let s = slabs.get(card);
       if (!s) {
         const mat = slabMats[card.material].clone();
