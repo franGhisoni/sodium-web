@@ -1,11 +1,15 @@
 import { Logo } from './Logo';
 import { Glass } from './Glass';
+import { SceneAnchor } from './SceneAnchor';
 import './sections.css';
 
 export function Manifesto() {
   return (
     <section className="section manifesto" id="estudio">
-      <div className="section-inner">
+      <div className="section-inner manifesto-inner">
+        {/* Apex-up prism left of the card: its spectrum fans through it. */}
+        <SceneAnchor kind="prism" className="manifesto-prism-anchor" rotation={0} beamAngle={-16} />
+        <SceneAnchor kind="prism" className="manifesto-prism-anchor--mobile" rotation={12} beamAngle={6} />
         <Glass variant="strong" className="manifesto-card" padding="56px">
           <span className="pill">
             <span className="pill-dot" />

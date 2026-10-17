@@ -1,7 +1,10 @@
 import { Glass } from './Glass';
+import { SceneAnchor } from './SceneAnchor';
+import { useContactLink } from '../contact';
 import './Hero.css';
 
 export function Hero() {
+  const contact = useContactLink();
   return (
     <section className="hero" id="top">
       <div className="hero-inner container">
@@ -24,7 +27,7 @@ export function Hero() {
           </p>
 
           <div className="hero-actions">
-            <a href="#contacto" className="btn btn-primary">
+            <a {...contact} className="btn btn-primary">
               Iniciar proyecto
               <span className="btn-arrow" aria-hidden="true">→</span>
             </a>
@@ -51,6 +54,14 @@ export function Hero() {
         </div>
 
         <div className="hero-stage">
+          {/* Apex-down prism, rolled 12° so a level beam meets the near face
+              at ~42° (no total internal reflection for any wavelength). The
+              beam runs between the actions and the meta row, and leaves as a
+              rising spectrum that the hero cards bend on its way out. */}
+          <SceneAnchor kind="prism" className="hero-prism-anchor" rotation={168} beamAngle={0} />
+          {/* Narrow screens: apex-up prism in the gap above the cards, so the
+              spectrum falls down through them. */}
+          <SceneAnchor kind="prism" className="hero-prism-anchor--mobile" rotation={12} beamAngle={6} />
           <HeroWorkflowCard />
           <HeroReviewCard />
           <HeroStackCard />

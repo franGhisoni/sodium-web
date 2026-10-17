@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Logo } from './Logo';
 import { Glass } from './Glass';
+import { useContactLink } from '../contact';
 import './Nav.css';
 
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
+  const contact = useContactLink();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -20,8 +22,7 @@ export function Nav() {
           className="nav-pill-glass"
           padding="9px 14px 9px 22px"
           cornerRadius={999}
-          displacementScale={220}
-          blurAmount={0.06}
+          crystal={scrolled}
         >
           <div className="nav-pill-content">
             <a href="#top" className="nav-brand" aria-label="Sodium Software · inicio">
@@ -40,7 +41,7 @@ export function Nav() {
               <a href="#faq">FAQ</a>
             </nav>
 
-            <a href="#contacto" className="nav-cta">
+            <a {...contact} className="nav-cta">
               <span>Iniciar proyecto</span>
               <span className="nav-cta-arrow" aria-hidden="true">↗</span>
             </a>

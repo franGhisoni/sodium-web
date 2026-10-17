@@ -1,18 +1,14 @@
-import { useEffect, useRef } from 'react';
-
 /**
- * Page backdrop — one cheap WebGL pass (no fbm): cold gradient with drifting
- * light, diagonal light shafts, fine salt flecks that glint under a light sweep
- * and the pointer, and three depth layers of soft snow. Resolution adapts if
- * frames run long. Cards are glass via `@developer-hub/liquid-glass`.
+ * Page backdrop: cold gradient with drifting light, diagonal light shafts,
+ * fine salt flecks that glint under a light sweep and the pointer, and three
+ * depth layers of soft snow.
+ *
+ * The shader is drawn by the three.js scene (Crystal.tsx) as its first layer,
+ * so the crystal cards can refract it. This component only provides the CSS
+ * fallback shown when WebGL is unavailable.
  */
 
-const VERT = `
-attribute vec2 a_pos;
-void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }
-`;
-
-const SCENE_FRAG = `
+export const BG_FRAG = `
 precision highp float;
 
 uniform vec2  u_res;
@@ -22,6 +18,7 @@ uniform float u_time;
 uniform vec2  u_mouse;
 uniform float u_scroll;
 uniform float u_soft;    /* 1 = pre-blurred pass: no fine grain/glints */
+varying vec2  v_uv;
 
 float hash21(vec2 p) {
   vec3 p3 = fract(vec3(p.xyx) * 0.1031);
@@ -49,7 +46,8 @@ float flake(vec2 p, float cell, float speed, float rmin, float rmax, float soft,
 }
 
 void main() {
-  vec2 p = vec2(gl_FragCoord.x, u_res.y - gl_FragCoord.y) / u_dpr;
+  /* From uv, not gl_FragCoord: the transmission pass renders this at another size. */
+  vec2 p = vec2(v_uv.x, 1.0 - v_uv.y) * u_view;
   float t = u_time;
   vec2 uv = p / u_view;
   float asp = u_view.x / u_view.y;
@@ -135,152 +133,11 @@ void main() {
   vec2 vu = (uv - 0.5) * vec2(asp, 1.0);
   col *= clamp(1.0 - 0.38 * dot(vu * 0.8, vu * 0.8), 0.3, 1.0);
   col += (hash21(gl_FragCoord.xy + t) - 0.5) / 255.0;
-  gl_FragColor = vec4(col, 1.0);
+  /* Authored in display space; the three.js pipeline works in linear. */
+  gl_FragColor = vec4(pow(max(col, 0.0), vec3(2.2)), 1.0);
 }
 `;
 
-function start(canvas: HTMLCanvasElement): (() => void) | null {
-  const gl = canvas.getContext('webgl', { antialias: false, alpha: false, powerPreference: 'high-performance' });
-  if (!gl) return null;
-
-  const compile = (type: number, src: string) => {
-    const s = gl.createShader(type);
-    if (!s) return null;
-    gl.shaderSource(s, src);
-    gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-      console.error('[Background]', gl.getShaderInfoLog(s));
-      return null;
-    }
-    return s;
-  };
-  const vs = compile(gl.VERTEX_SHADER, VERT);
-  const fs = compile(gl.FRAGMENT_SHADER, SCENE_FRAG);
-  if (!vs || !fs) return null;
-
-  const prog = gl.createProgram();
-  gl.attachShader(prog, vs);
-  gl.attachShader(prog, fs);
-  gl.bindAttribLocation(prog, 0, 'a_pos');
-  gl.linkProgram(prog);
-  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return null;
-  gl.useProgram(prog);
-
-  const buf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(0);
-  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-
-  const U = (n: string) => gl.getUniformLocation(prog, n);
-  const uRes = U('u_res'), uDpr = U('u_dpr'), uView = U('u_view'), uTime = U('u_time');
-  const uMouse = U('u_mouse'), uScroll = U('u_scroll'), uSoft = U('u_soft');
-  gl.uniform1f(uSoft, 0);
-
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  /* Adaptive resolution: drops a notch if frames run long. */
-  let quality = 1;
-  const resize = () => {
-    const pr = Math.min(devicePixelRatio || 1, 1.5) * quality;
-    canvas.width = Math.max(2, Math.floor(innerWidth * pr));
-    canvas.height = Math.max(2, Math.floor(innerHeight * pr));
-    gl.viewport(0, 0, canvas.width, canvas.height);
-  };
-  resize();
-
-  let mx = innerWidth * 0.72, my = innerHeight * 0.28, tx = mx, ty = my;
-  const onPointer = (e: PointerEvent) => {
-    tx = e.clientX;
-    ty = e.clientY;
-    request();
-  };
-  addEventListener('pointermove', onPointer, { passive: true });
-
-  let raf = 0;
-  const t0 = performance.now();
-  let last = t0, slow = 0, frames = 0;
-
-  const render = (now: number) => {
-    const dt = now - last;
-    last = now;
-    if (!reduced && dt < 200) {
-      slow += dt;
-      if (++frames === 45) {
-        if (slow / frames > 24 && quality > 0.55) {
-          quality *= 0.85;
-          resize();
-        }
-        slow = 0;
-        frames = 0;
-      }
-    }
-
-    mx += (tx - mx) * 0.08;
-    my += (ty - my) * 0.08;
-
-    gl.uniform2f(uRes, canvas.width, canvas.height);
-    gl.uniform1f(uDpr, canvas.width / innerWidth);
-    gl.uniform2f(uView, innerWidth, innerHeight);
-    gl.uniform1f(uTime, reduced ? 42 : (now - t0) / 1000 + 42);
-    gl.uniform2f(uMouse, mx, my);
-    gl.uniform1f(uScroll, window.scrollY);
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
-  };
-
-  const loop = (now: number) => {
-    render(now);
-    raf = requestAnimationFrame(loop);
-  };
-
-  /* Reduced motion: static scene, redrawn only when something moves. */
-  let pending = false;
-  function request() {
-    if (!reduced || pending) return;
-    pending = true;
-    requestAnimationFrame((now) => {
-      pending = false;
-      render(now);
-    });
-  }
-
-  const onResize = () => {
-    resize();
-    request();
-  };
-  addEventListener('resize', onResize);
-  addEventListener('scroll', request, { passive: true });
-
-  if (reduced) request();
-  else raf = requestAnimationFrame(loop);
-
-  return () => {
-    cancelAnimationFrame(raf);
-    removeEventListener('resize', onResize);
-    removeEventListener('scroll', request);
-    removeEventListener('pointermove', onPointer);
-  };
-}
-
 export function Background() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const stop = start(canvas);
-    if (!stop) {
-      canvas.style.display = 'none';
-      return;
-    }
-    return stop;
-  }, []);
-
-  return (
-    <>
-      {/* CSS fallback gradient — covered by the canvas when WebGL works */}
-      <div className="bg-gradient" aria-hidden="true" />
-      <canvas ref={canvasRef} className="bg-canvas" aria-hidden="true" />
-    </>
-  );
+  return <div className="bg-gradient" aria-hidden="true" />;
 }

@@ -73,7 +73,7 @@ img, svg { display: block; max-width: 100%; }
 
 /* ─── Background system ──────────────────────────────────────────── */
 
-/* CSS fallback — only visible if WebGL is unavailable */
+/* CSS fallback — only visible if WebGL2 is unavailable */
 .bg-gradient {
   position: fixed;
   inset: 0;
@@ -84,22 +84,13 @@ img, svg { display: block; max-width: 100%; }
     linear-gradient(118deg, #02070b 0%, #07131f 32%, #183148 58%, #3e6380 82%, #6d9dc5 100%);
 }
 
-/* WebGL frost/snow field — renders the whole scene */
-.bg-canvas {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: -9;
-  pointer-events: none;
-}
-
-/* 3D crystal field — camera travels through it on scroll */
+/* three.js scene: backdrop, crystal field and the slabs behind every card.
+   Sized to the layout viewport (not 100vh) so DOM rects map 1:1. */
 .scene-canvas {
   position: fixed;
   inset: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   z-index: -8;
   pointer-events: none;
 }
@@ -156,14 +147,35 @@ img, svg { display: block; max-width: 100%; }
   box-shadow: 0 0 10px var(--accent), 0 0 2px var(--accent);
 }
 
-/* ─── Liquid glass primitive ────────────────────────────────────── */
+/* ─── Crystal card primitive ────────────────────────────────────── */
 /*
- * `<GlassCard>` from `@developer-hub/liquid-glass` (wrapped via Glass.tsx)
- * uses `className="glass"` INTERNALLY on its content wrapper, so we do not
- * define `.glass` visuals here: displacement, blur and refraction belong to
- * the library. Layout-only classes (.cap-card, .case-card, .hero-card-*,
- * .manifesto-card, .cta-card) are passed via `className` on `<Glass>`.
+ * `<Glass>` (Glass.tsx) renders `.glass-wrap > .glass > .glass__warp +
+ * .glass__content`. Refraction, dispersion and light rays come from the
+ * WebGL slab drawn behind `.glass`; the DOM only adds a light tint for text
+ * contrast and a top sheen. Layout-only classes (.cap-card, .case-card,
+ * .hero-card-*, .manifesto-card, .cta-card) are passed via `className`.
  */
+.glass {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 24px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px -30px rgba(1, 8, 16, 0.7);
+  transition: box-shadow 0.2s ease-in-out;
+}
+.glass__warp {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 38%);
+}
+.glass__content {
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
 
 /* ─── Layout ─────────────────────────────────────────────────────── */
 
@@ -177,9 +189,8 @@ main { display: block; }
 .glass-wrap > .glass {
   width: 100%;
   box-sizing: border-box;
-  /* Dark cool tint under the glass so small text keeps its contrast. */
-  background:
-    linear-gradient(160deg, rgba(4, 14, 26, 0.34), rgba(2, 8, 16, 0.46)) !important;
+  /* Light cool tint over the crystal so small text keeps its contrast. */
+  background: linear-gradient(160deg, rgba(4, 14, 26, 0.16), rgba(2, 8, 16, 0.3));
 }
 
 /* ─── Scroll reveal ──────────────────────────────────────────────── */
@@ -189,9 +200,8 @@ main { display: block; }
   animation: revealUp 850ms var(--ease-out) both;
   animation-delay: var(--rd, 0ms);
 }
-/* Liquid-glass cards must never animate opacity: an ancestor with opacity < 1
- * becomes a "backdrop root", so the glass sees no page behind it and renders as
- * an opaque dark slab until the animation ends. Slide-only for those. */
+/* Crystal cards slide in without fading: the WebGL slab behind them can't
+ * follow DOM opacity, so a fading card would leave its crystal behind. */
 .glass-wrap.reveal { opacity: 1; }
 .glass-wrap.reveal-in { animation-name: revealUpGlass; }
 @keyframes revealUpGlass {
@@ -224,4 +234,74 @@ main { display: block; }
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ─── Scene anchors ─────────────────────────────────────────────── */
+/* Empty boxes the WebGL scene pins 3D pieces to (SceneAnchor.tsx). */
+.scene-anchor {
+  position: absolute;
+  pointer-events: none;
+}
+.hero-prism-anchor {
+  left: -15%;
+  top: 476px;
+  width: 210px;
+  height: 210px;
+}
+.manifesto-inner,
+.cta-inner { position: relative; }
+.manifesto-prism-anchor {
+  left: calc(50% - 490px - 200px);
+  top: 50%;
+  width: 230px;
+  height: 230px;
+  transform: translateY(-50%);
+}
+.cta-fractal-anchor {
+  left: calc(50% + 310px);
+  top: 50%;
+  width: 300px;
+  height: 300px;
+  transform: translateY(-50%);
+}
+/* Narrow-screen variants: small prisms in the gap above a card, so the
+   beam crosses the screen and the spectrum falls down through the card. */
+.hero-prism-anchor--mobile,
+.manifesto-prism-anchor--mobile { display: none; }
+.hero-prism-anchor--mobile {
+  top: -78px;
+  left: 18%;
+  width: 92px;
+  height: 92px;
+}
+.manifesto-prism-anchor--mobile {
+  top: -88px;
+  left: 16%;
+  width: 92px;
+  height: 92px;
+}
+@media (max-width: 1240px) {
+  .manifesto-prism-anchor { display: none; }
+  .manifesto-prism-anchor--mobile { display: block; }
+}
+@media (max-width: 1100px) {
+  /* Fractal moves above the card's top-right corner, half over it. */
+  .cta-fractal-anchor {
+    left: auto;
+    right: 4%;
+    top: -92px;
+    width: 150px;
+    height: 150px;
+    transform: none;
+  }
+}
+@media (max-width: 980px) {
+  .hero-prism-anchor { display: none; }
+  .hero-prism-anchor--mobile { display: block; }
+}
+
+/* Touch: the crystal slab's chamfer is the card edge — a CSS border on top
+   would draw a second outline just outside it. */
+@media (pointer: coarse) {
+  .glass-wrap { border-color: transparent !important; }
 }

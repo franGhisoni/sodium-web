@@ -124,7 +124,7 @@ export function Casos() {
         </header>
 
         {CASES.filter((c) => c.featured).map((c) => (
-          <Glass key={c.id} className="case-feature" padding="22px" onClick={() => setActive(c)}>
+          <Glass key={c.id} className="case-feature" material="holo" padding="22px" onClick={() => setActive(c)}>
             <div className="case-feature-inner">
               <div className="case-shot case-feature-shot">
                 <CaseShot c={c} />
