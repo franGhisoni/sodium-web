@@ -781,7 +781,10 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     transmission: 1,
     thickness: 1.6,
     ior: 1.62,
-    dispersion: 9,
+    /* Dispersion samples the scene three times per pixel; across ~50
+       crystals that's too much for a phone GPU. Phones keep it on the
+       prism only. */
+    dispersion: mobile ? 0 : 9,
     iridescence: 0.35,
     iridescenceIOR: 1.35,
     attenuationColor: new Color().setRGB(0.78, 0.88, 0.98, SRGBColorSpace),
@@ -1103,6 +1106,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     bgMat.uniforms.u_res.value.set(ww, wh);
     bgMat.uniforms.u_dpr.value = ww / cssW;
     bgMat.uniforms.u_view.value.set(cssW, cssH);
+    window.__scene = { quality, width: buf.x, height: buf.y };
   };
   resize();
 

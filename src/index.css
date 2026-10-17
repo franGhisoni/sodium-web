@@ -306,11 +306,17 @@ main { display: block; }
   .hero-prism-anchor--mobile { display: block; }
 }
 
-/* Touch: no WebGL slabs (a canvas drawn from JS trails the compositor's
-   scroll, so slabs would jump behind their cards on a fling). The crystal
-   look is pure CSS here so it moves exactly with the card. No
-   backdrop-filter: the canvas behind redraws every frame, so a blur would
-   be recomputed under every card all the time. */
+/* Touch: no WebGL card slabs (a slab drawn from JS can't stay glued to a
+   card on a fast fling), so the crystal look is pure CSS and moves exactly
+   with the card. Holo cards look like the rest here. No backdrop-filter on
+   touch either: over a canvas that redraws every frame, every blurred box
+   is recomputed every frame. */
+@media (pointer: coarse) {
+  * {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
 @media (pointer: coarse) {
   .glass-wrap { border-color: transparent !important; }
   .glass-wrap > .glass {
@@ -329,18 +335,5 @@ main { display: block; }
     background:
       linear-gradient(118deg, rgba(255, 255, 255, 0) 30%, rgba(220, 238, 255, 0.07) 38%, rgba(255, 255, 255, 0) 46%),
       linear-gradient(165deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 38%);
-  }
-  /* Holographic cards: iridescent rim and a faint spectral sheen. */
-  .glass-wrap--holo > .glass {
-    border: 1px solid transparent;
-    background:
-      linear-gradient(158deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02) 34%, rgba(255, 255, 255, 0) 58%) padding-box,
-      linear-gradient(160deg, rgba(8, 22, 38, 0.5), rgba(2, 8, 16, 0.62)) padding-box,
-      linear-gradient(120deg, #ff8fc8, #ffd27a, #8affc1, #7ad7ff, #b48cff, #ff8fc8) border-box;
-  }
-  .glass-wrap--holo > .glass > .glass__warp {
-    background: linear-gradient(115deg,
-      rgba(255, 140, 200, 0.07), rgba(255, 220, 130, 0.05) 25%,
-      rgba(140, 255, 200, 0.06) 50%, rgba(120, 200, 255, 0.07) 75%, rgba(180, 140, 255, 0.06));
   }
 }

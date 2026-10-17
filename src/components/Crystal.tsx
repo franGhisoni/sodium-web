@@ -11,6 +11,11 @@ export function CrystalScene() {
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
+    /* `?nogl`: same page without the scene, to compare on a device. */
+    if (new URLSearchParams(location.search).has('nogl')) {
+      canvas.style.display = 'none';
+      return;
+    }
     /* three.js loads in its own chunk so the page paints first. */
     let stop: (() => void) | null = null;
     let cancelled = false;
