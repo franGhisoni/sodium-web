@@ -92,6 +92,9 @@ function scrubText(): Array<() => void> {
   }
   const words = Array.from(el.querySelectorAll<HTMLElement>('.sw'));
   const n = words.length;
+  /* Last value written per word: style writes only on change, so scrolling
+     elsewhere on the page doesn't restyle every word each frame. */
+  const last: string[] = new Array(n).fill('');
   let raf = 0;
 
   const update = () => {
@@ -101,7 +104,10 @@ function scrubText(): Array<() => void> {
     const p = clamp((vh * 0.82 - r.top) / (r.height + vh * 0.22), 0, 1);
     for (let i = 0; i < n; i++) {
       const o = clamp((p * (n + 3) - i) / 3, 0, 1);
-      words[i].style.setProperty('--o', (0.16 + 0.84 * o).toFixed(3));
+      const v = (0.16 + 0.84 * o).toFixed(3);
+      if (v === last[i]) continue;
+      last[i] = v;
+      words[i].style.setProperty('--o', v);
     }
   };
   const request = () => {
@@ -169,13 +175,23 @@ function countUps(): Array<() => void> {
   ];
 }
 
-/** Lifts the hero copy as it scrolls away (single CSS variable, one rAF). */
+/**
+ * Lifts the hero copy as it scrolls away (single CSS variable, one rAF).
+ * The variable lives on the hero copy itself — set on <html> it would
+ * restyle the whole page every scroll frame — and is written only when it
+ * changes, so past the hero it costs nothing.
+ */
 function heroParallax(): Array<() => void> {
-  const root = document.documentElement;
+  const root = document.querySelector<HTMLElement>('.hero-copy');
+  if (!root) return [];
   let raf = 0;
+  let last = '';
   const update = () => {
     raf = 0;
-    root.style.setProperty('--hs', clamp(window.scrollY / (innerHeight * 0.8), 0, 1).toFixed(3));
+    const v = clamp(window.scrollY / (innerHeight * 0.8), 0, 1).toFixed(3);
+    if (v === last) return;
+    last = v;
+    root.style.setProperty('--hs', v);
   };
   const request = () => {
     if (!raf) raf = requestAnimationFrame(update);

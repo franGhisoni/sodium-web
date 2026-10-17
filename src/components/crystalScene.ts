@@ -687,10 +687,9 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
   }
   renderer.toneMapping = NoToneMapping;
   renderer.outputColorSpace = SRGBColorSpace;
-  renderer.transmissionResolutionScale = 0.5;
-
   const mobile = matchMedia('(max-width: 768px), (pointer: coarse)').matches;
   const touch = matchMedia('(pointer: coarse)').matches;
+  renderer.transmissionResolutionScale = mobile ? 0.35 : 0.5;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const pmrem = new PMREMGenerator(renderer);
@@ -1076,30 +1075,44 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
 
   /* Adaptive resolution: drops a notch if frames run long. */
   let quality = mobile ? 0.8 : 1;
+  /* Phones draw the world (backdrop, beams, crystals) smaller; the card
+     pass upsamples it, and the slabs' own edges stay full resolution. */
+  const worldScale = mobile ? 0.7 : 1;
   let cssW = 1, cssH = 1;
+  let sized = '';
   const buf = new Vector2();
+  /* Only reallocates when the canvas really changes size. The canvas is
+     100lvh tall, so a phone's URL bar showing/hiding doesn't resize it. */
   const resize = () => {
-    cssW = Math.max(1, canvas.clientWidth);
-    cssH = Math.max(1, canvas.clientHeight);
+    const w = Math.max(1, canvas.clientWidth);
+    const h = Math.max(1, canvas.clientHeight);
+    const key = `${w}x${h}x${quality}`;
+    if (key === sized) return;
+    sized = key;
+    cssW = w;
+    cssH = h;
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5) * quality);
     renderer.setSize(cssW, cssH, false);
     renderer.getDrawingBufferSize(buf);
-    rtWorld.setSize(buf.x, buf.y);
+    const ww = Math.max(1, Math.round(buf.x * worldScale));
+    const wh = Math.max(1, Math.round(buf.y * worldScale));
+    rtWorld.setSize(ww, wh);
     rtBeams.setSize(Math.max(1, buf.x >> 1), Math.max(1, buf.y >> 1));
     camera.aspect = cssW / cssH;
     beamCam.right = cssW;
     beamCam.bottom = cssH;
     beamCam.updateProjectionMatrix();
-    bgMat.uniforms.u_res.value.copy(buf);
-    bgMat.uniforms.u_dpr.value = buf.x / cssW;
+    bgMat.uniforms.u_res.value.set(ww, wh);
+    bgMat.uniforms.u_dpr.value = ww / cssW;
     bgMat.uniforms.u_view.value.set(cssW, cssH);
   };
   resize();
 
-  /* Scroll → camera progress, measured against the live page height. */
+  /* Scroll → camera progress, against the page height minus the stable
+     canvas height (not innerHeight, which jumps with a phone's URL bar). */
   let maxScroll = 1;
   const measure = () => {
-    maxScroll = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    maxScroll = Math.max(1, document.documentElement.scrollHeight - cssH);
   };
   measure();
   const ro = new ResizeObserver(measure);
@@ -1163,7 +1176,9 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     py += (tpy - py) * 0.08;
 
     const p = prog01;
-    const fov = clamp(0.62 + vel * 2.2, 0.5, 0.95);
+    /* Lens kick from scroll speed; gentle on touch, where a fling would
+       otherwise snap the zoom. */
+    const fov = clamp(0.62 + vel * (touch ? 0.5 : 2.2), 0.5, 0.95);
     camera.position.set(
       Math.sin(p * 9.0) * 2.2 + mouseX * 1.2,
       Math.sin(p * 6.0) * 1.0 - mouseY * 0.8,
