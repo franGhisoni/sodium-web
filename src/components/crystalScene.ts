@@ -690,6 +690,21 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
   const mobile = matchMedia('(max-width: 768px), (pointer: coarse)').matches;
   const touch = matchMedia('(pointer: coarse)').matches;
   renderer.transmissionResolutionScale = 0.5;
+
+  /* Scroll sync (touch). Phones scroll on the compositor thread, so a fixed
+     canvas drawn from JS always shows the page as it was a frame ago, and
+     everything pinned to the DOM trails it. Instead the canvas rides the
+     page: each frame it's drawn for the current scroll and moved to that
+     scroll, and between frames the compositor carries it along with the
+     content. OVERSCAN px above and below hide the edges while it drifts. */
+  const synced = touch;
+  const OVERSCAN = synced ? 140 : 0;
+  if (synced) canvas.classList.add('scene-canvas--synced');
+  /** Element rect in canvas pixels (viewport rect shifted by the overscan). */
+  const rectOf = (el: Element) => {
+    const r = el.getBoundingClientRect();
+    return { left: r.left, top: r.top + OVERSCAN, width: r.width, height: r.height, bottom: r.bottom + OVERSCAN };
+  };
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const pmrem = new PMREMGenerator(renderer);
@@ -869,7 +884,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
       group,
       update(t, w, h) {
         const R = Math.min(w, h) / 2;
-        const r = a.el.getBoundingClientRect();
+        const r = rectOf(a.el);
         const cx = r.left + r.width / 2;
         const cy = r.top + r.height / 2;
         /* Steering: the pointer on desktop, the prism's own scroll position
@@ -1114,7 +1129,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
      canvas height (not innerHeight, which jumps with a phone's URL bar). */
   let maxScroll = 1;
   const measure = () => {
-    maxScroll = Math.max(1, document.documentElement.scrollHeight - cssH);
+    maxScroll = Math.max(1, document.documentElement.scrollHeight - (cssH - 2 * OVERSCAN));
   };
   measure();
   const ro = new ResizeObserver(measure);
@@ -1126,7 +1141,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     tMouseX = e.clientX / innerWidth - 0.5;
     tMouseY = e.clientY / innerHeight - 0.5;
     tpx = e.clientX;
-    tpy = e.clientY;
+    tpy = e.clientY + OVERSCAN;
     request();
   };
   addEventListener('pointermove', onPointer, { passive: true });
@@ -1167,10 +1182,17 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
       }
     }
 
+    /* One scroll read per frame: this frame is drawn for it, and (touch)
+       the canvas is moved to it, so DOM rects read below line up. */
+    const sy = window.scrollY;
+    if (synced) canvas.style.transform = `translate3d(0, ${sy - OVERSCAN}px, 0)`;
+
     /* Camera follows the scroll with inertia; velocity drives a lens "kick". */
-    const target = clamp(window.scrollY / maxScroll, 0, 1);
+    const target = clamp(sy / maxScroll, 0, 1);
     const prev = prog01;
-    prog01 += (target - prog01) * (reduced ? 1 : 1 - Math.exp(-dt * 3.2));
+    /* Inertia: soft on desktop; tight on touch, where a fling already
+       carries momentum and extra easing reads as lag. */
+    prog01 += (target - prog01) * (reduced ? 1 : 1 - Math.exp(-dt * (touch ? 9 : 3.2)));
     vel += (((prog01 - prev) / Math.max(dt, 0.001)) - vel) * 0.1;
     mouseX += (tMouseX - mouseX) * 0.05;
     mouseY += (tMouseY - mouseY) * 0.05;
@@ -1199,7 +1221,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     const bu = bgMat.uniforms;
     bu.u_time.value = reduced ? 42 : t + 42;
     bu.u_mouse.value.set(px, py);
-    bu.u_scroll.value = window.scrollY;
+    bu.u_scroll.value = sy;
 
     for (const { c, mesh, mat, lineMat, rim } of cubes) {
       let x = c.o[0], y = c.o[1], z = c.o[2];
@@ -1240,7 +1262,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
         world.add(piece.group);
         pieces.set(a, piece);
       }
-      const r = a.el.getBoundingClientRect();
+      const r = rectOf(a.el);
       /* Prisms stay live a screen away: their beams reach across the page. */
       const margin = a.kind === 'prism' ? cssH : 120;
       const live = r.width > 2 && r.height > 2 && r.bottom > -margin && r.top < cssH + margin;
@@ -1263,11 +1285,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     cardSun.target.updateMatrixWorld();
     const liveCards = getCards();
     for (const [card, s] of slabs) if (!liveCards.has(card)) dropSlab(card, s);
-    /* Touch screens: no WebGL slabs. Phones scroll on the compositor, so a
-       canvas drawn from JS always trails the DOM by a frame or two; on a
-       fling that lag shows as the crystal jumping behind its card. The
-       cards there get a CSS crystal look that moves with them instead. */
-    for (const card of touch ? [] : liveCards) {
+    for (const card of liveCards) {
       let s = slabs.get(card);
       if (!s) {
         const mat = slabMats[card.material].clone();
@@ -1279,7 +1297,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
         slabs.set(card, s);
       }
       s.alpha += (card.on - s.alpha) * (reduced ? 1 : 1 - Math.exp(-dt * 6));
-      const r = card.el.getBoundingClientRect();
+      const r = rectOf(card.el);
       const onScreen = r.width > 2 && r.height > 2 && r.bottom > -80 && r.top < cssH + 80;
       s.mesh.visible = onScreen && s.alpha > 0.01;
       if (!s.mesh.visible) continue;
@@ -1364,5 +1382,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     rtBeams.dispose();
     /* No forceContextLoss: StrictMode remounts on the same canvas. */
     renderer.dispose();
+    canvas.classList.remove('scene-canvas--synced');
+    canvas.style.transform = '';
   };
 }
