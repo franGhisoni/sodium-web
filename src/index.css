@@ -242,11 +242,14 @@ main { display: block; }
   position: absolute;
   pointer-events: none;
 }
+/* Right side of the first view, a little below centre so the level beam
+   passes under the copy. */
 .hero-prism-anchor {
-  left: -15%;
-  top: 476px;
-  width: 210px;
-  height: 210px;
+  right: 9%;
+  top: 68%;
+  width: 280px;
+  height: 280px;
+  transform: translateY(-50%);
 }
 .manifesto-inner,
 .cta-inner { position: relative; }
@@ -269,10 +272,10 @@ main { display: block; }
 .hero-prism-anchor--mobile,
 .manifesto-prism-anchor--mobile { display: none; }
 .hero-prism-anchor--mobile {
-  top: -78px;
-  left: 18%;
-  width: 92px;
-  height: 92px;
+  bottom: 70px;
+  right: 14%;
+  width: 120px;
+  height: 120px;
 }
 .manifesto-prism-anchor--mobile {
   top: -88px;

@@ -18,6 +18,8 @@ export type CrystalCard = {
 
 export type AnchorKind = 'prism' | 'fractal';
 
+export type BeamLight = 'spectrum' | 'white';
+
 export type SceneAnchorEntry = {
   el: HTMLElement;
   kind: AnchorKind;
@@ -25,6 +27,8 @@ export type SceneAnchorEntry = {
   rotation: number;
   /** Incoming beam direction in degrees, screen space (negative = rising). */
   beamAngle: number;
+  /** 'spectrum': the prism fans the beam into colours; 'white': it only bends it. */
+  light: BeamLight;
 };
 
 const cards = new Set<CrystalCard>();

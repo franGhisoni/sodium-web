@@ -7,7 +7,8 @@ export function Hero() {
   const contact = useContactLink();
   return (
     <section className="hero" id="top">
-      <div className="hero-inner container">
+      {/* First view: just the promise, two actions and the prism. */}
+      <div className="hero-fold container">
         <div className="hero-copy">
           <span className="pill hero-pill">
             <span className="pill-dot" />
@@ -22,8 +23,7 @@ export function Hero() {
 
           <p className="hero-sub">
             Intervenimos los flujos de trabajo clave de tu empresa para acelerar
-            decisiones, ejecución y crecimiento. <span className="muted">No desarrollamos otra IA:
-            integramos lo mejor del mercado donde el cambio genera impacto real.</span>
+            decisiones, ejecución y crecimiento.
           </p>
 
           <div className="hero-actions">
@@ -36,7 +36,28 @@ export function Hero() {
               <span className="btn-arrow" aria-hidden="true">↘</span>
             </a>
           </div>
+        </div>
 
+        {/* Apex-up prism, rolled 12°: the beam rises from the lower left under
+            the copy and meets the near face at ~50° (no total internal
+            reflection at rest); the spectrum falls down-right towards the
+            content below. */}
+        <SceneAnchor kind="prism" className="hero-prism-anchor" rotation={12} beamAngle={-10} />
+        <SceneAnchor kind="prism" className="hero-prism-anchor--mobile" rotation={12} beamAngle={0} />
+
+        <a href="#hero-detalle" className="hero-scroll" aria-label="Bajar al contenido">
+          <span>Cómo trabajamos</span>
+          <span className="hero-scroll-line" aria-hidden="true" />
+        </a>
+      </div>
+
+      {/* Below the fold: positioning, principles and the workflow cards. */}
+      <div className="hero-detail container" id="hero-detalle">
+        <div className="hero-detail-copy">
+          <p className="hero-lead">
+            No desarrollamos otra IA: <span className="muted">integramos lo mejor del
+            mercado donde el cambio genera impacto real.</span>
+          </p>
           <dl className="hero-meta">
             <div>
               <dt>Enfoque</dt>
@@ -54,14 +75,6 @@ export function Hero() {
         </div>
 
         <div className="hero-stage">
-          {/* Apex-down prism, rolled 12° so a level beam meets the near face
-              at ~42° (no total internal reflection for any wavelength). The
-              beam runs between the actions and the meta row, and leaves as a
-              rising spectrum that the hero cards bend on its way out. */}
-          <SceneAnchor kind="prism" className="hero-prism-anchor" rotation={168} beamAngle={0} />
-          {/* Narrow screens: apex-up prism in the gap above the cards, so the
-              spectrum falls down through them. */}
-          <SceneAnchor kind="prism" className="hero-prism-anchor--mobile" rotation={12} beamAngle={6} />
           <HeroWorkflowCard />
           <HeroReviewCard />
           <HeroStackCard />

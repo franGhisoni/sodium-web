@@ -10,6 +10,7 @@ import { useEffect } from 'react';
  */
 const SELECTORS = [
   '.hero-copy',
+  '.hero-detail-copy',
   '.hero-card',
   '.section-head',
   '.cap-card',

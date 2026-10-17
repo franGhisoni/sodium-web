@@ -47,6 +47,7 @@ import { BG_FRAG } from './Background';
 import {
   getAnchors,
   getCards,
+  type BeamLight,
   type CardMaterial,
   type CrystalCard,
   type SceneAnchorEntry,
@@ -204,17 +205,13 @@ type Cube = {
   pivot?: [number, number, number];
 };
 
-/* Hero cluster: where it sits on first load (right of the copy). */
-const HERO_PIVOT: [number, number, number] = [3.6, 0, 0];
+/* Hero cluster: upper right and set back, so the first view stays clear
+   for the title and the prism. */
+const HERO_PIVOT: [number, number, number] = [6.2, 3, -7];
 const HERO_REL: Array<Omit<Cube, 'pivot'>> = [
   { o: [0, 0, 0], s: 1.2, ph: 0.0, sp: 0.10 },
   { o: [2.5, 1.6, -1.0], s: 0.5, ph: 1.7, sp: 0.16 },
-  { o: [-2.2, -1.8, 0.9], s: 0.58, ph: 3.9, sp: 0.13 },
-  { o: [-2.5, 1.7, -0.6], s: 0.36, ph: 2.6, sp: 0.20 },
-  { o: [2.0, -2.2, 0.5], s: 0.4, ph: 5.1, sp: 0.18 },
-  { o: [0.3, 2.9, 1.0], s: 0.26, ph: 0.8, sp: 0.24 },
-  { o: [3.0, -0.2, 1.1], s: 0.22, ph: 4.4, sp: 0.21 },
-  { o: [-3.0, -0.1, -1.1], s: 0.24, ph: 2.1, sp: 0.19 },
+  { o: [-2.2, -1.8, 0.9], s: 0.4, ph: 3.9, sp: 0.13 },
 ];
 
 /* The camera flies this far down -z over the whole page. */
@@ -246,7 +243,8 @@ function buildCubes(): Cube[] {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
   for (let k = 0; k < 44; k++) {
-    const z = -7 - k * 2.0 - rnd() * 1.4;
+    /* Starts a few units back so the first view stays uncluttered. */
+    const z = -13 - k * 1.9 - rnd() * 1.4;
     const side = rnd() < 0.5 ? -1 : 1;
     const big = rnd() < 0.18;
     cubes.push({
@@ -410,11 +408,21 @@ type BeamBatch = ReturnType<typeof createBeamBatch>;
 const scaleRGB = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
 
 /**
- * One white beam into a convex prism: a weak surface reflection, then one
- * path per wavelength that bends at entry, may bounce inside (total internal
- * reflection), bends again on exit and fans out as a spectrum.
+ * Per-path setup. 'spectrum': one path per wavelength, each with its own
+ * index, so the exit fans out. 'white': a single mid-spectrum path that
+ * bends exactly like the prism would but stays white and tight.
  */
-function traceBeam(batch: BeamBatch, poly: P[], origin: P, dir: P, reach: number) {
+const BEAM_PATHS: Record<BeamLight, { ior: number; c: RGB; inner: number; out: number; wb: number }[]> = {
+  spectrum: WAVES.map((nm, w) => ({ ior: iorAt(nm), c: WAVE_RGB[w], inner: 1.6, out: 3, wb: 120 })),
+  white: [{ ior: iorAt(550), c: [1, 1, 1], inner: 1.2, out: 1.5, wb: 64 }],
+};
+
+/**
+ * One white beam into a convex prism: a weak surface reflection, then each
+ * path bends at entry, may bounce inside (total internal reflection), bends
+ * again on exit and leaves — as a spectrum, or as one white beam.
+ */
+function traceBeam(batch: BeamBatch, poly: P[], origin: P, dir: P, reach: number, light: BeamLight) {
   const white: RGB = [1, 1, 1];
   const entry = hitEdge(poly, origin, dir, -1);
   if (!entry) {
@@ -426,12 +434,11 @@ function traceBeam(batch: BeamBatch, poly: P[], origin: P, dir: P, reach: number
   batch.ribbon(origin, E, 22, 18, white, scaleRGB(white, 1.15));
 
   const r = reflect2(dir, nIn);
-  batch.ribbon(E, { x: E.x + r.x * reach * 0.5, y: E.y + r.y * reach * 0.5 }, 10, 40, scaleRGB(white, 0.16), [0, 0, 0]);
+  batch.ribbon(E, { x: E.x + r.x * reach * 0.5, y: E.y + r.y * reach * 0.5 }, 10, 40, scaleRGB(white, 0.08), [0, 0, 0]);
 
   let exitFlare: P | null = null;
-  WAVES.forEach((nm, w) => {
-    const ior = iorAt(nm);
-    const c = WAVE_RGB[w];
+  const paths = BEAM_PATHS[light];
+  paths.forEach(({ ior, c, inner, out: outGain, wb }, w) => {
     let d = refract2(dir, nIn, 1 / ior);
     if (!d) return;
     let cur = E;
@@ -440,13 +447,13 @@ function traceBeam(batch: BeamBatch, poly: P[], origin: P, dir: P, reach: number
       const h = hitEdge(poly, cur, d, skip);
       if (!h) return;
       const X = { x: cur.x + d.x * h.t, y: cur.y + d.y * h.t };
-      batch.ribbon(cur, X, 7, 7, scaleRGB(c, 1.6), scaleRGB(c, 1.6));
+      batch.ribbon(cur, X, 7, 7, scaleRGB(c, inner), scaleRGB(c, inner));
       const nOut = outwardNormal(poly, h.i);
       const out = refract2(d, { x: -nOut.x, y: -nOut.y }, ior);
       if (out) {
         const far = { x: X.x + out.x * reach, y: X.y + out.y * reach };
-        batch.ribbon(X, far, 9, 120, scaleRGB(c, 3), scaleRGB(c, 0.35));
-        if (w === WAVES.length >> 1) exitFlare = X;
+        batch.ribbon(X, far, 9, wb, scaleRGB(c, outGain), scaleRGB(c, outGain * 0.12));
+        if (w === paths.length >> 1) exitFlare = X;
         return;
       }
       d = reflect2(d, nOut);
@@ -894,7 +901,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
         const aim = { x: cx, y: cy };
         const back = (aim.x + 400) / Math.max(dir.x, 0.2);
         const origin = { x: aim.x - dir.x * back, y: aim.y - dir.y * back };
-        traceBeam(beams, poly, origin, dir, Math.max(cssW, cssH) * 1.6);
+        traceBeam(beams, poly, origin, dir, Math.max(cssW, cssH) * 1.6, a.light);
       },
       dispose() {},
     };
@@ -1189,7 +1196,9 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
 
       /* Depth in view space: skip what's behind/too close, fade with distance. */
       const depth = -v.set(x, y, z).applyMatrix4(camera.matrixWorldInverse).z;
-      const fade = depth < 1.2 ? 0 : smooth(1.2, 5.0, depth) * (1 - smooth(34, 62, depth));
+      /* Far ones fade early: perspective bunches them towards the centre,
+         behind the copy; they appear as the camera flies in. */
+      const fade = depth < 1.2 ? 0 : smooth(1.2, 5.0, depth) * (1 - smooth(18, 30, depth));
       mesh.visible = fade >= 0.01;
       if (!mesh.visible) continue;
 
