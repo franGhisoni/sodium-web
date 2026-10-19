@@ -716,8 +716,13 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
      scroll, and between frames the compositor carries it along with the
      content. OVERSCAN px above and below hide the edges while it drifts. */
   const synced = touch;
-  const OVERSCAN = synced ? 140 : 0;
-  if (synced) canvas.classList.add('scene-canvas--synced');
+  /* `?lead`: experimental scroll prediction (off by default). */
+  const predict = synced && new URLSearchParams(location.search).has('lead');
+  const OVERSCAN = synced ? (predict ? 140 : 80) : 0;
+  if (synced) {
+    canvas.classList.add('scene-canvas--synced');
+    canvas.style.height = `calc(100lvh + ${2 * OVERSCAN}px)`;
+  }
   /* The frame drawn now reaches the screen ~1-2 frames later, by which time a
      fast fling has moved on. `lead` is how far ahead (px) we draw and place
      the canvas, predicted from the scroll velocity, so it lands in sync. */
@@ -1286,7 +1291,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     /* Read scrollY and all DOM rects BEFORE writing canvas.style.transform
        so the browser never performs a forced synchronous layout in rAF. */
     const rawSy = window.scrollY;
-    if (synced) {
+    if (predict) {
       const dtS = Math.max(dtMs, 1);
       scrollVel += (((rawSy - lastSy) / dtS) - scrollVel) * 0.5;
       lastSy = rawSy;
