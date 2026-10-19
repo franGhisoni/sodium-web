@@ -4,6 +4,8 @@ import { Glass } from './Glass';
 import { useContactLink } from '../contact';
 import './Nav.css';
 
+const isTouch = typeof window !== 'undefined' && matchMedia('(pointer: coarse)').matches;
+
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const contact = useContactLink();
@@ -22,7 +24,7 @@ export function Nav() {
           className="nav-pill-glass"
           padding="9px 14px 9px 22px"
           cornerRadius={999}
-          crystal={scrolled}
+          crystal={scrolled && !isTouch}
         >
           <div className="nav-pill-content">
             <a href="#top" className="nav-brand" aria-label="Sodium Software · inicio">

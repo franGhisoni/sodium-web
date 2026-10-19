@@ -84,7 +84,26 @@ img, svg { display: block; max-width: 100%; }
     linear-gradient(118deg, #02070b 0%, #07131f 32%, #183148 58%, #3e6380 82%, #6d9dc5 100%);
 }
 
-/* three.js scene: backdrop, crystal field and (on desktop) the slabs behind every card. */
+/* three.js scene: backdrop, crystal field and the slabs behind every card.
+   Sized to the layout viewport (not 100vh) so DOM rects map 1:1. */
+.scene-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -8;
+  pointer-events: none;
+}
+/* Touch: the canvas rides the page scroll and is moved back into place
+   each frame, with 80px of overscan above and below (crystalScene.ts). */
+.scene-canvas.scene-canvas--synced {
+  position: absolute;
+  height: calc(100vh + 160px);
+  height: calc(100lvh + 160px);
+  will-change: transform;
+}
 .scene-canvas {
   position: fixed;
   top: 0;
@@ -305,48 +324,14 @@ main { display: block; }
   .hero-prism-anchor--mobile { display: block; }
 }
 
-/* Touch: cards use a CSS crystal treatment so they scroll on the browser's
-   compositor thread at full frame rate with zero WebGL slab lag. No
-   backdrop-filter either: over a canvas that redraws every frame, every
-   blurred box would be recomputed every frame. */
+/* Touch: the WebGL slab's chamfer is the card edge, so no CSS border on top.
+   No backdrop-filter either: over a canvas that redraws every frame, every
+   blurred box is recomputed every frame. */
 @media (pointer: coarse) {
+  .glass-wrap { border-color: transparent !important; }
+  .glass-wrap.reveal-in { animation: none; }
   * {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-  }
-  .glass-wrap { border-color: transparent !important; }
-  .glass-wrap > .glass {
-    background:
-      linear-gradient(158deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.025) 34%, rgba(255, 255, 255, 0) 58%),
-      linear-gradient(160deg, rgba(8, 22, 38, 0.52), rgba(2, 8, 16, 0.68));
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.24),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.3),
-      inset 1px 0 0 rgba(255, 255, 255, 0.06),
-      0 24px 60px -30px rgba(1, 8, 16, 0.8);
-  }
-  .nav:not(.nav--scrolled) .nav-pill-glass > .glass {
-    background: transparent;
-    border-color: transparent;
-  }
-  /* Facet glint: a soft diagonal band across the upper corner. */
-  .glass-wrap > .glass > .glass__warp {
-    background:
-      linear-gradient(118deg, rgba(255, 255, 255, 0) 30%, rgba(220, 238, 255, 0.07) 38%, rgba(255, 255, 255, 0) 46%),
-      linear-gradient(165deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 38%);
-  }
-  /* Holographic cards: iridescent rim and a faint spectral sheen. */
-  .glass-wrap--holo > .glass {
-    border: 1px solid transparent;
-    background:
-      linear-gradient(158deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02) 34%, rgba(255, 255, 255, 0) 58%) padding-box,
-      linear-gradient(160deg, rgba(8, 22, 38, 0.54), rgba(2, 8, 16, 0.7)) padding-box,
-      linear-gradient(120deg, rgba(255, 143, 200, 0.55), rgba(255, 210, 122, 0.5), rgba(138, 255, 193, 0.5), rgba(122, 215, 255, 0.55), rgba(180, 140, 255, 0.55)) border-box;
-  }
-  .glass-wrap--holo > .glass > .glass__warp {
-    background: linear-gradient(115deg,
-      rgba(255, 140, 200, 0.06), rgba(255, 220, 130, 0.04) 25%,
-      rgba(140, 255, 200, 0.05) 50%, rgba(120, 200, 255, 0.06) 75%, rgba(180, 140, 255, 0.05));
   }
 }

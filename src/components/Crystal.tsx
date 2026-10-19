@@ -30,5 +30,9 @@ export function CrystalScene() {
     };
   }, []);
 
-  return <canvas ref={ref} className="scene-canvas" aria-hidden="true" />;
+  return (
+    <div className="scene-wrap" aria-hidden="true">
+      <canvas ref={ref} className="scene-canvas" />
+    </div>
+  );
 }

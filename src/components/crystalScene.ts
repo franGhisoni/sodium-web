@@ -76,16 +76,25 @@ void main() {
 }
 `;
 
-/* Backdrop + traced beams, in linear (converted to sRGB when drawn directly to screen). */
+/* Backdrop + traced beams, in linear working space (world renders into rtWorld). */
 const WORLD_BG_FRAG = BG_FRAG.replace(
   'varying vec2  v_uv;',
   'varying vec2  v_uv;\nuniform sampler2D u_beams;',
 ).replace(
   'gl_FragColor = vec4(pow(max(col, 0.0), vec3(2.2)), 1.0);',
-  'gl_FragColor = vec4(pow(max(col, 0.0), vec3(2.2)) + texture2D(u_beams, v_uv).rgb, 1.0);\n  #include <colorspace_fragment>',
+  'gl_FragColor = vec4(pow(max(col, 0.0), vec3(2.2)) + texture2D(u_beams, v_uv).rgb, 1.0);',
 );
 
-/* The finished world image, shown opaque so the card slabs refract it. */
+/* Opaque linear copy of rtWorld for cardScene's transmission mipmap pass. */
+const WORLD_QUAD_LINEAR_FRAG = `
+uniform sampler2D tWorld;
+varying vec2 v_uv;
+void main() {
+  gl_FragColor = vec4(texture2D(tWorld, v_uv).rgb, 1.0);
+}
+`;
+
+/* The finished world image, converted to sRGB + dithered when drawn to screen. */
 const WORLD_QUAD_FRAG = `
 uniform sampler2D tWorld;
 varying vec2 v_uv;
@@ -153,7 +162,6 @@ void main() {
   vec3 ice = vec3(0.26, 0.45, 0.68);
   vec3 col = ice * fres * 0.9 + vec3(0.85, 0.94, 1.0) * pow(fres, 3.0) * 0.8;
   gl_FragColor = vec4(col * u_fade, 1.0);
-  #include <colorspace_fragment>
 }
 `;
 
@@ -666,7 +674,8 @@ function mirrorEnvironment(): Scene {
 
 type Slab = {
   mesh: Mesh;
-  mat: MeshPhysicalMaterial;
+  baseMat: MeshPhysicalMaterial;
+  fadeMat: MeshPhysicalMaterial | null;
   holo: ShaderMaterial | null;
   key: string;
   alpha: number;
@@ -678,13 +687,6 @@ type AnchorRect = {
   width: number;
   height: number;
   bottom: number;
-};
-
-type AnchorBox = {
-  docLeft: number;
-  docTop: number;
-  width: number;
-  height: number;
 };
 
 type AnchorPiece = {
@@ -705,11 +707,22 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
   renderer.outputColorSpace = SRGBColorSpace;
   const mobile = matchMedia('(max-width: 768px), (pointer: coarse)').matches;
   const touch = matchMedia('(pointer: coarse)').matches;
-  /* Touch devices use native CSS crystal cards (which scroll on the compositor
-     thread with zero lag) and render the 3D world directly to the screen,
-     skipping the second transmission pass and card slab geometry altogether. */
-  const useSlabs = !touch;
-  renderer.transmissionResolutionScale = mobile ? 0.35 : 0.5;
+  renderer.transmissionResolutionScale = 0.5;
+
+  /* Scroll sync (touch). Phones scroll on the compositor thread, so a fixed
+     canvas drawn from JS always shows the page as it was a frame ago, and
+     everything pinned to the DOM trails it. Instead the canvas rides the
+     page: each frame it's drawn for the current scroll and moved to that
+     scroll, and between frames the compositor carries it along with the
+     content. OVERSCAN px above and below hide the edges while it drifts. */
+  const synced = touch;
+  const OVERSCAN = synced ? 80 : 0;
+  if (synced) canvas.classList.add('scene-canvas--synced');
+  /** Element rect in canvas pixels (viewport rect shifted by the overscan). */
+  const rectOf = (el: Element): AnchorRect => {
+    const r = el.getBoundingClientRect();
+    return { left: r.left, top: r.top + OVERSCAN, width: r.width, height: r.height, bottom: r.bottom + OVERSCAN };
+  };
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const pmrem = new PMREMGenerator(renderer);
@@ -755,6 +768,8 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
   /* Render targets: beams (half res), the world image (MSAA, desktop only). */
   const rtBeams = new WebGLRenderTarget(2, 2, { type: HalfFloatType, depthBuffer: false });
   const rtWorld = new WebGLRenderTarget(2, 2, { type: HalfFloatType, samples: mobile ? 0 : 4 });
+  let transRtWorld: WebGLRenderTarget | null = null;
+  let transRtCard: WebGLRenderTarget | null = null;
 
   /* ── 1 · beams ── */
   const beamScene = new Scene();
@@ -792,10 +807,12 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
   });
   const bgMesh = fullscreen(bgMat);
   /* Three's internal transmission pass renders opaque objects into an offscreen
-     target that gets blurred into mipmaps; skip fine salt flecks and snow there. */
+     target that gets blurred into mipmaps; skip fine salt flecks and snow there,
+     and drop its 4x MSAA resolve on mobile. */
   bgMesh.onBeforeRender = () => {
-    const mainTarget = useSlabs ? rtWorld : null;
-    bgMat.uniforms.u_soft.value = renderer.getRenderTarget() === mainTarget ? 0 : 1;
+    const rt = renderer.getRenderTarget();
+    bgMat.uniforms.u_soft.value = rt === rtWorld ? 0 : 1;
+    if (mobile && rt && rt !== rtWorld && rt.samples > 0) transRtWorld = rt;
   };
   world.add(bgMesh);
 
@@ -824,6 +841,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
   const edgeMat = new LineBasicMaterial({
     color: new Color().setRGB(0.8, 0.89, 0.97, SRGBColorSpace),
     transparent: true,
+    opacity: 0.16,
     blending: AdditiveBlending,
     depthWrite: false,
   });
@@ -852,14 +870,18 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
   const isMirror = (i: number) => i === 1 || i === 4 || (i >= HERO_REL.length && (i - HERO_REL.length) % 4 === 1);
 
   const cubes = buildCubes().map((c, i) => {
-    const mat = (isMirror(i) ? mirrorMat : octMat).clone();
-    const lineMat = edgeMat.clone();
-    const rim = rimMat.clone();
-    const mesh = new Mesh(octGeo, mat);
-    mesh.add(new LineSegments(edgeGeo, lineMat), new Mesh(octGeo, rim));
+    const baseMat = isMirror(i) ? mirrorMat : octMat;
+    const fadeMat = baseMat.clone();
+    fadeMat.transparent = true;
+    const fadeLineMat = edgeMat.clone();
+    const fadeRim = rimMat.clone();
+    const mesh = new Mesh(octGeo, baseMat);
+    const line = new LineSegments(edgeGeo, edgeMat);
+    const rimMesh = new Mesh(octGeo, rimMat);
+    mesh.add(line, rimMesh);
     mesh.rotation.order = 'ZYX';
     world.add(mesh);
-    return { c, mesh, mat, lineMat, rim };
+    return { c, mesh, line, rimMesh, baseMat, fadeMat, fadeLineMat, fadeRim };
   });
 
   /* Anchored pieces: prisms and the glass fractal. */
@@ -892,6 +914,8 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     const mesh = new Mesh(prismGeo, prismMat);
     mesh.add(new LineSegments(prismEdges, prismEdgeMat));
     group.add(mesh);
+    let smoothSy = 0;
+    let hasSy = false;
     return {
       group,
       update(t, r) {
@@ -906,7 +930,14 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
            another face. The 3D tilt stays small so the silhouette keeps
            matching the traced triangle. */
         const sx = touch ? 0 : mouseX;
-        const sy = touch ? clamp((cy - cssH / 2) / cssH, -0.5, 0.5) : mouseY;
+        const rawSy = clamp((cy - cssH / 2) / cssH, -0.5, 0.5);
+        if (!hasSy || reduced) {
+          smoothSy = rawSy;
+          hasSy = true;
+        } else {
+          smoothSy += (rawSy - smoothSy) * 0.16;
+        }
+        const sy = touch ? smoothSy : mouseY;
         const roll = (a.rotation * Math.PI) / 180 + Math.sin(t * 0.35) * 0.03 + sx * 0.55 + sy * (touch ? 0.5 : 0.18);
         mesh.scale.setScalar(R);
         mesh.rotation.set(
@@ -1025,15 +1056,35 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
   };
 
   const pieces = new Map<SceneAnchorEntry, AnchorPiece>();
-  const anchorBoxes = new Map<SceneAnchorEntry, AnchorBox>();
   const dropPiece = (a: SceneAnchorEntry, piece: AnchorPiece) => {
     world.remove(piece.group);
     piece.dispose();
     pieces.delete(a);
-    anchorBoxes.delete(a);
   };
 
   /* ── 3 · cards ── */
+  /* Separate fullscreen quads for cardScene's linear transmission pass (layer 1)
+     and sRGB screen pass (layer 2) so Three.js never swaps shader programs for
+     outputColorSpace changes mid-frame. */
+  const worldQuadTransMat = new ShaderMaterial({
+    vertexShader: FULLSCREEN_VERT,
+    fragmentShader: WORLD_QUAD_LINEAR_FRAG,
+    depthTest: false,
+    depthWrite: false,
+    uniforms: { tWorld: { value: rtWorld.texture } },
+  });
+  const worldQuadTransMesh = fullscreen(worldQuadTransMat);
+  worldQuadTransMesh.layers.set(1);
+  worldQuadTransMesh.onBeforeRender = () => {
+    const rt = renderer.getRenderTarget();
+    if (rt && rt.samples > 0) transRtCard = rt;
+  };
+  worldQuadTransMesh.onAfterRender = () => {
+    camera.layers.disable(1);
+    camera.layers.enable(2);
+  };
+  cardScene.add(worldQuadTransMesh);
+
   const worldQuadMat = new ShaderMaterial({
     vertexShader: FULLSCREEN_VERT,
     fragmentShader: WORLD_QUAD_FRAG,
@@ -1041,7 +1092,9 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     depthWrite: false,
     uniforms: { tWorld: { value: rtWorld.texture } },
   });
-  cardScene.add(fullscreen(worldQuadMat));
+  const worldQuadScreenMesh = fullscreen(worldQuadMat);
+  worldQuadScreenMesh.layers.set(2);
+  cardScene.add(worldQuadScreenMesh);
 
   const facets = facetNormalMap();
   const holoBands = holoThicknessMap();
@@ -1055,7 +1108,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
          thickness is exaggerated to make the facets visibly bend the world. */
       thickness: 420,
       ior: 1.55,
-      dispersion: 8,
+      dispersion: mobile ? 0 : 8,
       iridescence: 0.22,
       iridescenceIOR: 1.3,
       attenuationColor: new Color().setRGB(0.7, 0.82, 0.94, SRGBColorSpace),
@@ -1071,7 +1124,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
       transmission: 1,
       thickness: 300,
       ior: 1.5,
-      dispersion: 10,
+      dispersion: mobile ? 0 : 10,
       iridescence: 1,
       iridescenceIOR: 1.9,
       iridescenceThicknessRange: [220, 1100],
@@ -1086,6 +1139,15 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
   cardGroup.matrixAutoUpdate = false;
   cardScene.add(cardGroup);
   const slabs = new Map<CrystalCard, Slab>();
+  const slabGeoCache = new Map<string, BufferGeometry>();
+  const getSlabGeo = (w: number, h: number, radius: number, key: string) => {
+    let geo = slabGeoCache.get(key);
+    if (!geo) {
+      geo = slabGeometry(w, h, radius);
+      slabGeoCache.set(key, geo);
+    }
+    return geo;
+  };
 
   const holoMat = new ShaderMaterial({
     vertexShader: HOLO_VERT,
@@ -1098,14 +1160,14 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
 
   const dropSlab = (card: CrystalCard, s: Slab) => {
     cardGroup.remove(s.mesh);
-    s.mesh.geometry.dispose();
-    s.mat.dispose();
+    s.fadeMat?.dispose();
     s.holo?.dispose();
     slabs.delete(card);
   };
 
-  /* Sharp Retina resolution without over-shading 3x mobile screens. */
-  const pixelRatio = Math.min(devicePixelRatio || 1, mobile ? 1.5 : 2);
+  /* Full resolution up to 2x density (sharp on 3x phones without paying
+     for every physical pixel). */
+  const pixelRatio = Math.min(devicePixelRatio || 1, 2);
   let cssW = 1, cssH = 1;
   let sized = '';
   const buf = new Vector2();
@@ -1123,7 +1185,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     renderer.setSize(cssW, cssH, false);
     renderer.getDrawingBufferSize(buf);
     const ww = buf.x, wh = buf.y;
-    if (useSlabs) rtWorld.setSize(ww, wh);
+    rtWorld.setSize(ww, wh);
     rtBeams.setSize(Math.max(1, buf.x >> 1), Math.max(1, buf.y >> 1));
     camera.aspect = cssW / cssH;
     camera.updateProjectionMatrix();
@@ -1141,8 +1203,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
      canvas height (not innerHeight, which jumps with a phone's URL bar). */
   let maxScroll = 1;
   const measure = () => {
-    maxScroll = Math.max(1, document.documentElement.scrollHeight - cssH);
-    anchorBoxes.clear();
+    maxScroll = Math.max(1, document.documentElement.scrollHeight - (cssH - 2 * OVERSCAN));
   };
   measure();
   const ro = new ResizeObserver(measure);
@@ -1154,7 +1215,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     tMouseX = e.clientX / innerWidth - 0.5;
     tMouseY = e.clientY / innerHeight - 0.5;
     tpx = e.clientX;
-    tpy = e.clientY;
+    tpy = e.clientY + OVERSCAN;
     request();
   };
   if (!touch) addEventListener('pointermove', onPointer, { passive: true });
@@ -1165,6 +1226,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
   let prog01 = clamp(window.scrollY / maxScroll, 0, 1);
   let vel = 0;
   let lastFov = -1;
+  let warmed = false;
   const v = new Vector3();
   const local = new Matrix4();
   const noRot = new Quaternion();
@@ -1178,18 +1240,49 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     obj.matrixWorldNeedsUpdate = true;
   };
 
+  const renderScenePasses = (anySlabVisible: boolean) => {
+    renderer.setRenderTarget(rtBeams);
+    renderer.render(beamScene, beamCam);
+
+    renderer.setRenderTarget(rtWorld);
+    renderer.render(world, camera);
+    if (transRtWorld) {
+      transRtWorld.samples = 0;
+      transRtWorld.dispose();
+      transRtWorld = null;
+    }
+
+    if (anySlabVisible) {
+      camera.layers.enable(1);
+      camera.layers.disable(2);
+    } else {
+      camera.layers.disable(1);
+      camera.layers.enable(2);
+    }
+    renderer.setRenderTarget(null);
+    renderer.render(cardScene, camera);
+    camera.layers.disable(1);
+    camera.layers.disable(2);
+    if (transRtCard) {
+      transRtCard.samples = 0;
+      transRtCard.dispose();
+      transRtCard = null;
+    }
+  };
+
   const render = (now: number) => {
     const dtMs = now - last;
     const dt = Math.min(dtMs / 1000, 0.05);
     last = now;
     const t = reduced ? 0 : (now - t0) / 1000;
 
+    /* Read scrollY and all DOM rects BEFORE writing canvas.style.transform
+       so the browser never performs a forced synchronous layout in rAF. */
     const sy = window.scrollY;
+
     const target = clamp(sy / maxScroll, 0, 1);
     const prev = prog01;
-    /* Touch scrolling already has native OS momentum; tracking `target`
-       directly avoids double-inertia lag behind the finger. */
-    prog01 = touch || reduced ? target : prog01 + (target - prog01) * (1 - Math.exp(-dt * 3.2));
+    prog01 += (target - prog01) * (reduced ? 1 : 1 - Math.exp(-dt * (touch ? 5 : 3.2)));
     vel += (((prog01 - prev) / Math.max(dt, 0.001)) - vel) * 0.1;
     if (!touch) {
       mouseX += (tMouseX - mouseX) * 0.05;
@@ -1223,7 +1316,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     bu.u_mouse.value.set(px, py);
     bu.u_scroll.value = sy;
 
-    for (const { c, mesh, mat, lineMat, rim } of cubes) {
+    for (const { c, mesh, line, rimMesh, baseMat, fadeMat, fadeLineMat, fadeRim } of cubes) {
       let x = c.o[0], y = c.o[1], z = c.o[2];
       if (c.pivot) {
         const a = t * 0.22;
@@ -1244,15 +1337,20 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
       mesh.position.set(x, y, z);
       mesh.rotation.set(c.ph * 0.7, t * c.sp + c.ph, 0.615);
       mesh.scale.setScalar(c.s);
-      /* Mirrors stay opaque once settled so they reach the card refraction. */
-      if (useSlabs && mat.transmission === 0) mat.transparent = fade < 0.99;
-      mat.opacity = fade;
-      lineMat.opacity = 0.16 * fade;
-      rim.uniforms.u_fade.value = fade;
+      /* Share base materials when fully opaque in the corridor; use per-cube
+         fading clones only at the near/far transition boundaries. */
+      const fading = fade < 0.995;
+      mesh.material = fading ? fadeMat : baseMat;
+      line.material = fading ? fadeLineMat : edgeMat;
+      rimMesh.material = fading ? fadeRim : rimMat;
+      if (fading) {
+        fadeMat.opacity = fade;
+        fadeLineMat.opacity = 0.16 * fade;
+        fadeRim.uniforms.u_fade.value = fade;
+      }
     }
 
-    /* Anchored pieces (and their traced beams). Document rects are cached
-       between resizes so scrolling does zero DOM layout reads per frame. */
+    /* Anchored pieces (and their traced beams). */
     beams.reset();
     const liveAnchors = getAnchors();
     for (const [a, piece] of pieces) if (!liveAnchors.has(a)) dropPiece(a, piece);
@@ -1263,20 +1361,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
         world.add(piece.group);
         pieces.set(a, piece);
       }
-      let box = anchorBoxes.get(a);
-      if (!box) {
-        const b = a.el.getBoundingClientRect();
-        box = { docLeft: b.left, docTop: b.top + sy, width: b.width, height: b.height };
-        anchorBoxes.set(a, box);
-      }
-      const top = box.docTop - sy;
-      const r: AnchorRect = {
-        left: box.docLeft,
-        top,
-        width: box.width,
-        height: box.height,
-        bottom: top + box.height,
-      };
+      const r = rectOf(a.el);
       /* Prisms stay live a screen away: their beams reach across the page. */
       const margin = a.kind === 'prism' ? cssH : 120;
       const live = r.width > 2 && r.height > 2 && r.bottom > -margin && r.top < cssH + margin;
@@ -1287,73 +1372,116 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     }
     beams.commit();
 
-    if (useSlabs) {
-      /* Slabs: one CSS pixel at CARD_DIST, so DOM rects map 1:1. */
-      pinToScreen(cardGroup, fov, CARD_DIST, 0, 0);
-      /* The slabs never tilt (perspective would slide a wide card's edges off
-         its DOM box); the key light follows the pointer instead, so chamfer
-         glints still travel as the mouse moves. */
-      const lx = (px / cssW - 0.5) * 9;
-      const ly = (0.5 - py / cssH) * 7;
-      cardSun.position.copy(camera.localToWorld(v.set(5 + lx, 7 + ly, 2)));
-      cardSun.target.position.copy(camera.localToWorld(v.set(0, 0, -CARD_DIST)));
-      cardSun.target.updateMatrixWorld();
-      const liveCards = getCards();
-      for (const [card, s] of slabs) if (!liveCards.has(card)) dropSlab(card, s);
-      for (const card of liveCards) {
-        let s = slabs.get(card);
-        if (!s) {
-          const mat = slabMats[card.material].clone();
-          const mesh = new Mesh(new BufferGeometry(), mat);
-          const holo = card.material === 'holo' ? holoMat.clone() : null;
-          if (holo) mesh.add(new Mesh(mesh.geometry, holo));
-          cardGroup.add(mesh);
-          s = { mesh, mat, holo, key: '', alpha: card.on };
-          slabs.set(card, s);
-        }
-        s.alpha += (card.on - s.alpha) * (reduced ? 1 : 1 - Math.exp(-dt * 6));
-        if (s.alpha <= 0.01 && card.on === 0) {
-          s.mesh.visible = false;
-          continue;
-        }
-        const r = card.el.getBoundingClientRect();
-        const onScreen = r.width > 2 && r.height > 2 && r.bottom > -80 && r.top < cssH + 80;
-        s.mesh.visible = onScreen && s.alpha > 0.01;
-        if (!s.mesh.visible) continue;
+    /* Slabs: one CSS pixel at CARD_DIST, so DOM rects map 1:1. */
+    pinToScreen(cardGroup, fov, CARD_DIST, 0, 0);
+    /* The slabs never tilt (perspective would slide a wide card's edges off
+       its DOM box); the key light follows the pointer instead, so chamfer
+       glints still travel as the mouse moves. */
+    const lx = (px / cssW - 0.5) * 9;
+    const ly = (0.5 - py / cssH) * 7;
+    cardSun.position.copy(camera.localToWorld(v.set(5 + lx, 7 + ly, 2)));
+    cardSun.target.position.copy(camera.localToWorld(v.set(0, 0, -CARD_DIST)));
+    cardSun.target.updateMatrixWorld();
 
-        const key = `${Math.round(r.width)}x${Math.round(r.height)}x${card.radius}`;
+    const liveCards = getCards();
+    for (const [card, s] of slabs) if (!liveCards.has(card)) dropSlab(card, s);
+    let anySlabVisible = false;
+    for (const card of liveCards) {
+      let s = slabs.get(card);
+      if (!s) {
+        const baseMat = slabMats[card.material];
+        const mesh = new Mesh(new BufferGeometry(), baseMat);
+        const holo = card.material === 'holo' ? holoMat.clone() : null;
+        if (holo) mesh.add(new Mesh(mesh.geometry, holo));
+        cardGroup.add(mesh);
+        s = { mesh, baseMat, fadeMat: null, holo, key: '', alpha: card.on };
+        slabs.set(card, s);
+      }
+      s.alpha += (card.on - s.alpha) * (reduced ? 1 : 1 - Math.exp(-dt * 6));
+      const r = rectOf(card.el);
+      /* Pre-build and cache slab geometries on first sight even if offscreen
+         so scrolling down never hitches on ExtrudeGeometry creation. */
+      if (r.width > 2 && r.height > 2) {
+        const w = Math.round(r.width), h = Math.round(r.height);
+        const key = `${w}x${h}x${card.radius}`;
         if (key !== s.key) {
-          s.mesh.geometry.dispose();
-          s.mesh.geometry = slabGeometry(Math.round(r.width), Math.round(r.height), card.radius);
-          for (const child of s.mesh.children) (child as Mesh).geometry = s.mesh.geometry;
+          const geo = getSlabGeo(w, h, card.radius, key);
+          s.mesh.geometry = geo;
+          for (const child of s.mesh.children) (child as Mesh).geometry = geo;
           s.key = key;
         }
-        const cx = r.left + r.width / 2;
-        const cy = r.top + r.height / 2;
-        if (s.holo) {
-          s.holo.uniforms.uTime.value = t;
-          s.holo.uniforms.uAlpha.value = s.alpha;
-          const pointer = ((px - cx) / cssW + (py - cy) / cssH) * 0.8;
-          s.holo.uniforms.uShift.value = (cy - cssH / 2) / cssH + pointer;
+      }
+      const onScreen = r.width > 2 && r.height > 2 && r.bottom > -80 && r.top < cssH + 80;
+      s.mesh.visible = onScreen && s.alpha > 0.01;
+      if (!s.mesh.visible) continue;
+      anySlabVisible = true;
+
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      if (s.holo) {
+        s.holo.uniforms.uTime.value = t;
+        s.holo.uniforms.uAlpha.value = s.alpha;
+        const pointer = ((px - cx) / cssW + (py - cy) / cssH) * 0.8;
+        s.holo.uniforms.uShift.value = (cy - cssH / 2) / cssH + pointer;
+      }
+      s.mesh.position.set(cx - cssW / 2, cssH / 2 - cy, 0);
+      /* Share the common material when settled; only allocate a fading clone
+         if a card actually animates its alpha. */
+      if (s.alpha < 0.995) {
+        if (!s.fadeMat) {
+          s.fadeMat = s.baseMat.clone();
+          s.fadeMat.transparent = true;
         }
-        s.mesh.position.set(cx - cssW / 2, cssH / 2 - cy, 0);
-        /* Opaque when settled; blended only while fading. */
-        s.mat.transparent = s.alpha < 0.995;
-        s.mat.opacity = s.alpha;
+        s.fadeMat.opacity = s.alpha;
+        s.mesh.material = s.fadeMat;
+      } else {
+        s.mesh.material = s.baseMat;
       }
     }
 
-    renderer.setRenderTarget(rtBeams);
-    renderer.render(beamScene, beamCam);
-    if (useSlabs) {
-      renderer.setRenderTarget(rtWorld);
-      renderer.render(world, camera);
-      renderer.setRenderTarget(null);
-      renderer.render(cardScene, camera);
-    } else {
-      renderer.setRenderTarget(null);
-      renderer.render(world, camera);
+    /* Commit the synced canvas transform AFTER all DOM reads are complete. */
+    if (synced) canvas.style.transform = `translate3d(0, ${sy - OVERSCAN}px, 0)`;
+
+    /* First frame warmup: temporarily force offscreen anchor pieces (prism + fractal)
+       and both card material types (crystal + holo) visible inside the frustum
+       for one hidden pass so all shaders compile and both transmission targets
+       switch to single-sample before the user ever scrolls. */
+    if (!warmed) {
+      warmed = true;
+      const savedPieces: AnchorPiece[] = [];
+      for (const piece of pieces.values()) {
+        if (!piece.group.visible) {
+          savedPieces.push(piece);
+          piece.group.visible = true;
+          pinToScreen(piece.group, fov, ANCHOR_DIST, 0, 0);
+        }
+      }
+      const savedSlabs: Array<{ s: Slab; vis: boolean; x: number; y: number }> = [];
+      let seenCrystal = false, seenHolo = false;
+      for (const [card, s] of slabs) {
+        if ((card.material === 'crystal' && !seenCrystal) || (card.material === 'holo' && !seenHolo)) {
+          if (card.material === 'crystal') seenCrystal = true;
+          else seenHolo = true;
+          savedSlabs.push({ s, vis: s.mesh.visible, x: s.mesh.position.x, y: s.mesh.position.y });
+          if (s.key === '') {
+            const geo = getSlabGeo(120, 80, card.radius, `120x80x${card.radius}`);
+            s.mesh.geometry = geo;
+            for (const child of s.mesh.children) (child as Mesh).geometry = geo;
+            s.key = `120x80x${card.radius}`;
+          }
+          s.mesh.visible = true;
+          s.mesh.position.set(0, 0, 0);
+        }
+      }
+      renderScenePasses(true);
+      for (const piece of savedPieces) piece.group.visible = false;
+      for (const { s, vis, x, y } of savedSlabs) {
+        s.mesh.visible = vis;
+        s.mesh.position.set(x, y, 0);
+      }
     }
+
+    renderScenePasses(anySlabVisible);
   };
 
   const loop = (now: number) => {
@@ -1389,16 +1517,18 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     removeEventListener('scroll', request);
     removeEventListener('pointermove', onPointer);
     for (const [card, s] of slabs) dropSlab(card, s);
+    for (const geo of slabGeoCache.values()) geo.dispose();
+    slabGeoCache.clear();
     for (const [a, piece] of pieces) dropPiece(a, piece);
-    for (const { mat, lineMat, rim } of cubes) {
-      mat.dispose();
-      lineMat.dispose();
-      rim.dispose();
+    for (const { fadeMat, fadeLineMat, fadeRim } of cubes) {
+      fadeMat.dispose();
+      fadeLineMat.dispose();
+      fadeRim.dispose();
     }
     [octGeo, edgeGeo, quad, prismGeo, prismEdges, tetraGeo, tetraEdges, beams.geo].forEach((g) => g.dispose());
     [
       octMat, mirrorMat, edgeMat, rimMat, prismMat, prismEdgeMat, tetraMat, orbMat,
-      slabMats.crystal, slabMats.holo, holoMat, bgMat, beamMat, worldQuadMat,
+      slabMats.crystal, slabMats.holo, holoMat, bgMat, beamMat, worldQuadTransMat, worldQuadMat,
     ].forEach((m) => m.dispose());
     ([facets, holoBands, envTex, mirrorEnvTex] as Texture[]).forEach((tx) => tx.dispose());
     pmrem.dispose();
@@ -1406,5 +1536,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     rtBeams.dispose();
     /* No forceContextLoss: StrictMode remounts on the same canvas. */
     renderer.dispose();
+    canvas.classList.remove('scene-canvas--synced');
+    canvas.style.transform = '';
   };
 }
