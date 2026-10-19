@@ -100,8 +100,8 @@ img, svg { display: block; max-width: 100%; }
    each frame, with 80px of overscan above and below (crystalScene.ts). */
 .scene-canvas.scene-canvas--synced {
   position: absolute;
-  height: calc(100vh + 160px);
-  height: calc(100lvh + 160px);
+  height: calc(100vh + 280px);
+  height: calc(100lvh + 280px);
   will-change: transform;
 }
 .scene-canvas {

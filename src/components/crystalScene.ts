@@ -716,12 +716,17 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
      scroll, and between frames the compositor carries it along with the
      content. OVERSCAN px above and below hide the edges while it drifts. */
   const synced = touch;
-  const OVERSCAN = synced ? 80 : 0;
+  const OVERSCAN = synced ? 140 : 0;
   if (synced) canvas.classList.add('scene-canvas--synced');
-  /** Element rect in canvas pixels (viewport rect shifted by the overscan). */
+  /* The frame drawn now reaches the screen ~1-2 frames later, by which time a
+     fast fling has moved on. `lead` is how far ahead (px) we draw and place
+     the canvas, predicted from the scroll velocity, so it lands in sync. */
+  let lead = 0;
+  /** Element rect in canvas pixels (viewport rect shifted by overscan and lead). */
   const rectOf = (el: Element): AnchorRect => {
     const r = el.getBoundingClientRect();
-    return { left: r.left, top: r.top + OVERSCAN, width: r.width, height: r.height, bottom: r.bottom + OVERSCAN };
+    const off = OVERSCAN - lead;
+    return { left: r.left, top: r.top + off, width: r.width, height: r.height, bottom: r.bottom + off };
   };
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -1225,6 +1230,8 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
   let last = t0;
   let prog01 = clamp(window.scrollY / maxScroll, 0, 1);
   let vel = 0;
+  let scrollVel = 0; /* px/ms */
+  let lastSy = window.scrollY;
   let lastFov = -1;
   let warmed = false;
   const v = new Vector3();
@@ -1278,7 +1285,18 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
 
     /* Read scrollY and all DOM rects BEFORE writing canvas.style.transform
        so the browser never performs a forced synchronous layout in rAF. */
-    const sy = window.scrollY;
+    const rawSy = window.scrollY;
+    if (synced) {
+      const dtS = Math.max(dtMs, 1);
+      scrollVel += (((rawSy - lastSy) / dtS) - scrollVel) * 0.5;
+      lastSy = rawSy;
+      /* Stay inside the overscan so the edges never show. */
+      const cap = OVERSCAN * 0.8;
+      lead = Math.abs(scrollVel) < 0.05 ? 0 : clamp(scrollVel * 28, -cap, cap);
+      /* Never predict past the ends of the page. */
+      lead = clamp(lead, -rawSy, Math.max(0, maxScroll - rawSy));
+    }
+    const sy = rawSy + lead;
 
     const target = clamp(sy / maxScroll, 0, 1);
     const prev = prog01;
