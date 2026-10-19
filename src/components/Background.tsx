@@ -120,19 +120,18 @@ void main() {
     float d3 = length((fract(q2) - c2p) * 13.0);
     float tw2 = pow(max(0.0, sin(t * (0.35 + h2 * 0.7) + h2 * 40.0)), 14.0);
     col += vec3(0.85, 0.93, 1.0) * step(0.9, h2) * tw2 * exp(-d3 * d3 * 1.4) * (0.5 + lit) * 0.55;
+    /* — Snow: far, mid, near bokeh (sharp pass only) — */
+    vec2 sp = p + par * 10.0;
+    float s = 0.0;
+    s += flake(sp + vec2(0.0, u_scroll * 0.10), 52.0, 7.0, 0.8, 1.7, 0.6, 3.0, t) * 0.45;
+    s += flake(sp + par * 12.0 + vec2(0.0, u_scroll * 0.26), 98.0, 15.0, 1.5, 3.4, 0.85, 17.0, t) * 0.55;
+    s += flake(sp + par * 30.0 + vec2(0.0, u_scroll * 0.52), 210.0, 30.0, 5.0, 11.0, 1.0, 41.0, t) * 0.20;
+    col += vec3(0.84, 0.92, 1.0) * s * (0.55 + 0.45 * lit);
   }
-
-  /* — Snow: far (sharp pass only), mid, near bokeh — */
-  vec2 sp = p + par * 10.0;
-  float s = 0.0;
-  s += flake(sp + vec2(0.0, u_scroll * 0.10), 52.0, 7.0, 0.8, 1.7, 0.6, 3.0, t) * 0.45 * fine;
-  s += flake(sp + par * 12.0 + vec2(0.0, u_scroll * 0.26), 98.0, 15.0, 1.5, 3.4, 0.85, 17.0, t) * 0.55;
-  s += flake(sp + par * 30.0 + vec2(0.0, u_scroll * 0.52), 210.0, 30.0, 5.0, 11.0, 1.0, 41.0, t) * 0.20;
-  col += vec3(0.84, 0.92, 1.0) * s * (0.55 + 0.45 * lit);
 
   vec2 vu = (uv - 0.5) * vec2(asp, 1.0);
   col *= clamp(1.0 - 0.38 * dot(vu * 0.8, vu * 0.8), 0.3, 1.0);
-  col += (hash21(gl_FragCoord.xy + t) - 0.5) / 255.0;
+  if (fine > 0.5) col += (hash21(gl_FragCoord.xy + t) - 0.5) / 255.0;
   /* Authored in display space; the three.js pipeline works in linear. */
   gl_FragColor = vec4(pow(max(col, 0.0), vec3(2.2)), 1.0);
 }

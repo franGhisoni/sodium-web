@@ -30,11 +30,5 @@ export function CrystalScene() {
     };
   }, []);
 
-  /* The wrapper spans the document and clips: on touch the canvas scrolls
-     with the page (see crystalScene.ts) and must not extend its height. */
-  return (
-    <div className="scene-wrap" aria-hidden="true">
-      <canvas ref={ref} className="scene-canvas" />
-    </div>
-  );
+  return <canvas ref={ref} className="scene-canvas" aria-hidden="true" />;
 }

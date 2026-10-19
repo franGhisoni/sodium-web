@@ -110,15 +110,29 @@ function scrubText(): Array<() => void> {
       words[i].style.setProperty('--o', v);
     }
   };
+  let active = false;
   const request = () => {
-    if (!raf) raf = requestAnimationFrame(update);
+    if (active && !raf) raf = requestAnimationFrame(update);
   };
+  const io = new IntersectionObserver(
+    ([entry]) => {
+      active = entry.isIntersecting;
+      if (active) {
+        addEventListener('scroll', request, { passive: true });
+        request();
+      } else {
+        removeEventListener('scroll', request);
+      }
+    },
+    { rootMargin: '160px 0px' },
+  );
+  io.observe(el);
   update();
-  addEventListener('scroll', request, { passive: true });
   addEventListener('resize', request);
 
   return [
     () => {
+      io.disconnect();
       cancelAnimationFrame(raf);
       removeEventListener('scroll', request);
       removeEventListener('resize', request);
@@ -177,11 +191,11 @@ function countUps(): Array<() => void> {
 
 /**
  * Lifts the hero copy as it scrolls away (single CSS variable, one rAF).
- * The variable lives on the hero copy itself — set on <html> it would
- * restyle the whole page every scroll frame — and is written only when it
- * changes, so past the hero it costs nothing.
+ * Skipped on touch devices, where a main-thread scroll transform fights the
+ * compositor thread and causes the hero text to jitter.
  */
 function heroParallax(): Array<() => void> {
+  if (matchMedia('(pointer: coarse)').matches) return [];
   const root = document.querySelector<HTMLElement>('.hero-copy');
   if (!root) return [];
   let raf = 0;

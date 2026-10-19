@@ -810,6 +810,7 @@
   width: max-content;
   align-items: center;
   gap: 68px;
+  will-change: transform;
   animation: clientScroll 34s linear infinite;
 }
 
@@ -818,8 +819,8 @@
 }
 
 @keyframes clientScroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
 }
 
 .client-strip-item {

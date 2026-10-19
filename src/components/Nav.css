@@ -158,7 +158,11 @@
 
 @media (max-width: 880px) {
   .nav-pill-content { grid-template-columns: 1fr auto; }
-  .nav--scrolled .nav-pill { width: min(640px, calc(100% - 24px)); }
+  .nav-pill,
+  .nav--scrolled .nav-pill {
+    width: min(640px, calc(100% - 24px));
+    transition: none;
+  }
   .nav-links { display: none; }
 }
 
@@ -173,8 +177,10 @@
     gap: 12px;
   }
 
+  .nav-pill,
   .nav--scrolled .nav-pill {
     width: calc(100% - 20px);
+    transition: none;
   }
 
   .nav-brand {

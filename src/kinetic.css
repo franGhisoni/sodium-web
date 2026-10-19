@@ -2,13 +2,15 @@
    Words arrive out of focus, pushed back in depth and tilted, then the
    "lens" pulls focus and dollies in — staggered word by word.            */
 
+.kinetic:not(.kinetic-in) .kw {
+  will-change: transform, filter, opacity;
+}
 .kinetic .kw {
   display: inline-block;
   opacity: 0;
   filter: blur(14px);
   transform: perspective(900px) translate3d(0, 0.18em, -160px) rotateX(-24deg) scale(1.08);
   transform-origin: 50% 100%;
-  will-change: transform, filter, opacity;
 }
 .kinetic.kinetic-in .kw {
   opacity: 1;
@@ -18,6 +20,25 @@
     opacity 650ms ease calc(var(--i) * 80ms),
     filter 1000ms var(--ease-out) calc(var(--i) * 80ms),
     transform 1200ms var(--ease-out) calc(var(--i) * 80ms);
+}
+
+/* Mobile / touch: skip per-word Gaussian blur and 3D perspective layers,
+   which cause heavy offscreen rasterization spikes as headings scroll in. */
+@media (max-width: 768px), (pointer: coarse) {
+  .kinetic:not(.kinetic-in) .kw {
+    will-change: transform, opacity;
+  }
+  .kinetic .kw {
+    filter: none;
+    transform: translate3d(0, 0.32em, 0);
+  }
+  .kinetic.kinetic-in .kw {
+    filter: none;
+    transform: none;
+    transition:
+      opacity 520ms ease calc(var(--i) * 65ms),
+      transform 680ms var(--ease-out) calc(var(--i) * 65ms);
+  }
 }
 
 /* Gradient text: words are their own boxes, so the clip lives on them. */
@@ -30,26 +51,29 @@
   color: transparent;
 }
 
-/* Hero copy drifts up as the page scrolls away from it. */
-.hero-copy {
-  transform: translate3d(0, calc(var(--hs, 0) * -54px), 0);
+/* Hero copy drifts up as the page scrolls away from it (desktop only). */
+@media (pointer: fine) {
+  .hero-copy {
+    transform: translate3d(0, calc(var(--hs, 0) * -54px), 0);
+  }
 }
 
 /* ─── Manifesto: words light up with scroll ──────────────────────── */
 
 .manifesto-text .sw {
   opacity: var(--o, 1);
-  transition: opacity 120ms linear;
 }
 
 /* ─── Stats: stable digits while counting ────────────────────────── */
 
 .stat-num { font-variant-numeric: tabular-nums; }
 
-/* ─── Case thumbnails: wipe in with the card ─────────────────────── */
+/* ─── Case thumbnails: wipe in with the card (desktop only) ──────── */
 
-.case-card.reveal-in .case-shot svg {
-  animation: shotWipe 640ms var(--ease-out) 90ms both;
+@media (pointer: fine) {
+  .case-card.reveal-in .case-shot svg {
+    animation: shotWipe 640ms var(--ease-out) 90ms both;
+  }
 }
 @keyframes shotWipe {
   from { clip-path: inset(0 100% 0 0); transform: scale(1.06); }

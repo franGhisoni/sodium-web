@@ -126,6 +126,7 @@ export function Clientes() {
                   alt={`${c.name} logo`}
                   className={`client-strip-logo ${c.logoClass || ''}`}
                   loading="lazy"
+                  decoding="async"
                 />
               </div>
             ))}
@@ -147,6 +148,7 @@ export function Clientes() {
                   alt={`${c.name} logo`}
                   className={`client-card-logo ${c.logoClass || ''}`}
                   loading="lazy"
+                  decoding="async"
                 />
               </div>
 
