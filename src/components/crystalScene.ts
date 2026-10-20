@@ -727,6 +727,8 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
      fast fling has moved on. `lead` is how far ahead (px) we draw and place
      the canvas, predicted from the scroll velocity, so it lands in sync. */
   let lead = 0;
+  /* `?noslab`: debug, skip the card slabs (transmission pass) to isolate them. */
+  const noSlab = new URLSearchParams(location.search).has('noslab');
   /** Element rect in canvas pixels (viewport rect shifted by overscan and lead). */
   const rectOf = (el: Element): AnchorRect => {
     const r = el.getBoundingClientRect();
@@ -1435,7 +1437,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
         }
       }
       const onScreen = r.width > 2 && r.height > 2 && r.bottom > -80 && r.top < cssH + 80;
-      s.mesh.visible = onScreen && s.alpha > 0.01;
+      s.mesh.visible = onScreen && s.alpha > 0.01 && !noSlab;
       if (!s.mesh.visible) continue;
       anySlabVisible = true;
 
