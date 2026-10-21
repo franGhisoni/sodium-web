@@ -85,23 +85,22 @@ const WORLD_BG_FRAG = BG_FRAG.replace(
   'gl_FragColor = vec4(pow(max(col, 0.0), vec3(2.2)) + texture2D(u_beams, v_uv).rgb, 1.0);',
 );
 
-/* Opaque linear copy of rtWorld for cardScene's transmission mipmap pass. */
-const WORLD_QUAD_LINEAR_FRAG = `
-uniform sampler2D tWorld;
-varying vec2 v_uv;
-void main() {
-  gl_FragColor = vec4(texture2D(tWorld, v_uv).rgb, 1.0);
-}
-`;
-
-/* The finished world image, converted to sRGB + dithered when drawn to screen. */
+/* The finished world image, drawn opaque so the card slabs refract it. It
+   is drawn twice per frame: linear into three's transmission target (so the
+   slabs refract linear light), then to the screen, where `uScreen` switches
+   on the sRGB conversion and dither. One program, so no shader swap. */
 const WORLD_QUAD_FRAG = `
 uniform sampler2D tWorld;
+uniform float uScreen;
 varying vec2 v_uv;
 void main() {
-  gl_FragColor = vec4(texture2D(tWorld, v_uv).rgb, 1.0);
-  #include <colorspace_fragment>
-  gl_FragColor.rgb += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;
+  vec3 c = texture2D(tWorld, v_uv).rgb;
+  if (uScreen > 0.5) {
+    c = max(c, 0.0);
+    c = mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c));
+    c += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;
+  }
+  gl_FragColor = vec4(c, 1.0);
 }
 `;
 
@@ -1075,38 +1074,20 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
   };
 
   /* ── 3 · cards ── */
-  /* Separate fullscreen quads for cardScene's linear transmission pass (layer 1)
-     and sRGB screen pass (layer 2) so Three.js never swaps shader programs for
-     outputColorSpace changes mid-frame. */
-  const worldQuadTransMat = new ShaderMaterial({
-    vertexShader: FULLSCREEN_VERT,
-    fragmentShader: WORLD_QUAD_LINEAR_FRAG,
-    depthTest: false,
-    depthWrite: false,
-    uniforms: { tWorld: { value: rtWorld.texture } },
-  });
-  const worldQuadTransMesh = fullscreen(worldQuadTransMat);
-  worldQuadTransMesh.layers.set(1);
-  worldQuadTransMesh.onBeforeRender = () => {
-    const rt = renderer.getRenderTarget();
-    if (rt && rt.samples > 0) transRtCard = rt;
-  };
-  worldQuadTransMesh.onAfterRender = () => {
-    camera.layers.disable(1);
-    camera.layers.enable(2);
-  };
-  cardScene.add(worldQuadTransMesh);
-
   const worldQuadMat = new ShaderMaterial({
     vertexShader: FULLSCREEN_VERT,
     fragmentShader: WORLD_QUAD_FRAG,
     depthTest: false,
     depthWrite: false,
-    uniforms: { tWorld: { value: rtWorld.texture } },
+    uniforms: { tWorld: { value: rtWorld.texture }, uScreen: { value: 1 } },
   });
-  const worldQuadScreenMesh = fullscreen(worldQuadMat);
-  worldQuadScreenMesh.layers.set(2);
-  cardScene.add(worldQuadScreenMesh);
+  const worldQuadMesh = fullscreen(worldQuadMat);
+  worldQuadMesh.onBeforeRender = () => {
+    const rt = renderer.getRenderTarget();
+    worldQuadMat.uniforms.uScreen.value = rt ? 0 : 1;
+    if (rt && rt.samples > 0) transRtCard = rt;
+  };
+  cardScene.add(worldQuadMesh);
 
   const facets = facetNormalMap();
   const holoBands = holoThicknessMap();
@@ -1254,7 +1235,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     obj.matrixWorldNeedsUpdate = true;
   };
 
-  const renderScenePasses = (anySlabVisible: boolean) => {
+  const renderScenePasses = () => {
     renderer.setRenderTarget(rtBeams);
     renderer.render(beamScene, beamCam);
 
@@ -1266,17 +1247,8 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
       transRtWorld = null;
     }
 
-    if (anySlabVisible) {
-      camera.layers.enable(1);
-      camera.layers.disable(2);
-    } else {
-      camera.layers.disable(1);
-      camera.layers.enable(2);
-    }
     renderer.setRenderTarget(null);
     renderer.render(cardScene, camera);
-    camera.layers.disable(1);
-    camera.layers.disable(2);
     if (transRtCard) {
       transRtCard.samples = 0;
       transRtCard.dispose();
@@ -1410,7 +1382,6 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
 
     const liveCards = getCards();
     for (const [card, s] of slabs) if (!liveCards.has(card)) dropSlab(card, s);
-    let anySlabVisible = false;
     for (const card of liveCards) {
       let s = slabs.get(card);
       if (!s) {
@@ -1439,7 +1410,6 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
       const onScreen = r.width > 2 && r.height > 2 && r.bottom > -80 && r.top < cssH + 80;
       s.mesh.visible = onScreen && s.alpha > 0.01 && !noSlab;
       if (!s.mesh.visible) continue;
-      anySlabVisible = true;
 
       const cx = r.left + r.width / 2;
       const cy = r.top + r.height / 2;
@@ -1498,7 +1468,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
           s.mesh.position.set(0, 0, 0);
         }
       }
-      renderScenePasses(true);
+      renderScenePasses();
       for (const piece of savedPieces) piece.group.visible = false;
       for (const { s, vis, x, y } of savedSlabs) {
         s.mesh.visible = vis;
@@ -1506,7 +1476,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
       }
     }
 
-    renderScenePasses(anySlabVisible);
+    renderScenePasses();
   };
 
   const loop = (now: number) => {
@@ -1553,7 +1523,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     [octGeo, edgeGeo, quad, prismGeo, prismEdges, tetraGeo, tetraEdges, beams.geo].forEach((g) => g.dispose());
     [
       octMat, mirrorMat, edgeMat, rimMat, prismMat, prismEdgeMat, tetraMat, orbMat,
-      slabMats.crystal, slabMats.holo, holoMat, bgMat, beamMat, worldQuadTransMat, worldQuadMat,
+      slabMats.crystal, slabMats.holo, holoMat, bgMat, beamMat, worldQuadMat,
     ].forEach((m) => m.dispose());
     ([facets, holoBands, envTex, mirrorEnvTex] as Texture[]).forEach((tx) => tx.dispose());
     pmrem.dispose();
