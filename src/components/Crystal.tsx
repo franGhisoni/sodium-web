@@ -11,9 +11,15 @@ export function CrystalScene() {
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
-    /* `?nogl`: same page without the scene, to compare on a device. */
-    if (new URLSearchParams(location.search).has('nogl')) {
+    /* Phones get the plain page (CSS backdrop and cards): the live scene made
+       scrolling jumpy and the backdrop flash black. `?gl` forces it on, and
+       `?nogl` forces it off, to compare on a device. */
+    const params = new URLSearchParams(location.search);
+    const mobile = matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+    const root = document.documentElement;
+    if (params.has('nogl') || (mobile && !params.has('gl'))) {
       canvas.style.display = 'none';
+      root.classList.add('no-scene');
       return;
     }
     /* three.js loads in its own chunk so the page paints first. */
@@ -22,7 +28,10 @@ export function CrystalScene() {
     import('./crystalScene').then(({ startScene }) => {
       if (cancelled) return;
       stop = startScene(canvas);
-      if (!stop) canvas.style.display = 'none';
+      if (!stop) {
+        canvas.style.display = 'none';
+        root.classList.add('no-scene');
+      }
     });
     return () => {
       cancelled = true;
