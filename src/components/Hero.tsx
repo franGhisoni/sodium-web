@@ -43,7 +43,7 @@ export function Hero() {
             the copy and meets the near face at ~50° (no total internal
             reflection at rest); the spectrum falls down-right towards the
             content below. */}
-        <SceneAnchor kind="prism" className="hero-prism-anchor" rotation={12} beamAngle={-10} />
+        {!mobile && <SceneAnchor kind="prism" className="hero-prism-anchor" rotation={12} beamAngle={-10} />}
         {!mobile && (
           <SceneAnchor kind="prism" className="hero-prism-anchor--mobile" rotation={12} beamAngle={0} />
         )}

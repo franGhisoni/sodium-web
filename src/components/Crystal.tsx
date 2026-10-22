@@ -11,30 +11,10 @@ export function CrystalScene() {
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
-    /* Phones get the plain page (CSS backdrop and cards): the live scene made
-       scrolling jumpy and the backdrop flash black. `?gl` forces it on, and
-       `?nogl` forces it off, to compare on a device. */
-    const params = new URLSearchParams(location.search);
-    const mobile = matchMedia('(max-width: 768px), (pointer: coarse)').matches;
-    const root = document.documentElement;
-    if (params.has('nogl')) {
+    /* `?nogl`: same page without the scene, to compare on a device. */
+    if (new URLSearchParams(location.search).has('nogl')) {
       canvas.style.display = 'none';
-      root.classList.add('no-scene');
       return;
-    }
-    if (mobile && !params.has('gl')) {
-      root.classList.add('no-scene', 'lite-scene');
-      let stopLite: (() => void) | null = null;
-      let gone = false;
-      import('./liteScene').then(({ startLiteScene }) => {
-        if (gone) return;
-        stopLite = startLiteScene(canvas);
-        if (!stopLite) canvas.style.display = 'none';
-      });
-      return () => {
-        gone = true;
-        stopLite?.();
-      };
     }
     /* three.js loads in its own chunk so the page paints first. */
     let stop: (() => void) | null = null;
@@ -42,10 +22,7 @@ export function CrystalScene() {
     import('./crystalScene').then(({ startScene }) => {
       if (cancelled) return;
       stop = startScene(canvas);
-      if (!stop) {
-        canvas.style.display = 'none';
-        root.classList.add('no-scene');
-      }
+      if (!stop) canvas.style.display = 'none';
     });
     return () => {
       cancelled = true;

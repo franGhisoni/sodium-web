@@ -10,7 +10,7 @@ export function Manifesto() {
     <section className="section manifesto" id="estudio">
       <div className="section-inner manifesto-inner">
         {/* Apex-up prism left of the card: its spectrum fans through it. */}
-        <SceneAnchor kind="prism" className="manifesto-prism-anchor" rotation={0} beamAngle={-16} />
+        {!mobile && <SceneAnchor kind="prism" className="manifesto-prism-anchor" rotation={0} beamAngle={-16} />}
         {!mobile && (
           <SceneAnchor kind="prism" className="manifesto-prism-anchor--mobile" rotation={12} beamAngle={6} />
         )}
