@@ -714,9 +714,14 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
      page: each frame it's drawn for the current scroll and moved to that
      scroll, and between frames the compositor carries it along with the
      content. OVERSCAN px above and below hide the edges while it drifts. */
-  const synced = touch;
+  /* Riding the page drags the whole backdrop with the compositor and snaps it
+     back every frame, which reads as small jumps. It's off by default: the
+     canvas stays fixed, and on touch the card slabs (which would trail the
+     DOM by a frame) are replaced by CSS cards. `?sync` brings it back. */
+  const params = new URLSearchParams(location.search);
+  const synced = touch && params.has('sync');
   /* `?lead`: experimental scroll prediction (off by default). */
-  const predict = synced && new URLSearchParams(location.search).has('lead');
+  const predict = synced && params.has('lead');
   const OVERSCAN = synced ? (predict ? 140 : 80) : 0;
   if (synced) {
     canvas.classList.add('scene-canvas--synced');
@@ -727,7 +732,8 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
      the canvas, predicted from the scroll velocity, so it lands in sync. */
   let lead = 0;
   /* `?noslab`: debug, skip the card slabs (transmission pass) to isolate them. */
-  const noSlab = new URLSearchParams(location.search).has('noslab');
+  const noSlab = params.has('noslab') || (touch && !synced && !params.has('slabs'));
+  document.documentElement.classList.toggle('no-slab', noSlab);
   /** Element rect in canvas pixels (viewport rect shifted by overscan and lead). */
   const rectOf = (el: Element): AnchorRect => {
     const r = el.getBoundingClientRect();
@@ -1533,5 +1539,6 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     renderer.dispose();
     canvas.classList.remove('scene-canvas--synced');
     canvas.style.transform = '';
+    document.documentElement.classList.remove('no-slab');
   };
 }
