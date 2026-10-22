@@ -12,7 +12,6 @@ const FACES: [number, number, number][] = [
   [0, 2, 4], [4, 2, 1], [1, 2, 5], [5, 2, 0],
   [4, 3, 0], [1, 3, 4], [5, 3, 1], [0, 3, 5],
 ];
-const LIGHT: V3 = [-0.4, -0.7, 0.6];
 
 interface Crystal { x: number; y: number; r: number; depth: number; ax: number; ay: number; sx: number; sy: number; ph: number }
 interface Flake { x: number; y: number; r: number; v: number; ph: number; glint: boolean }
