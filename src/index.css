@@ -335,14 +335,3 @@ main { display: block; }
     -webkit-backdrop-filter: none !important;
   }
 }
-
-/* No WebGL slab behind the cards (touch): each card draws its own edge and a
-   see-through fill, so the fixed backdrop shows through. */
-.no-slab .glass-wrap { border-color: transparent !important; }
-.no-slab .glass-wrap > .glass {
-  border: 1px solid var(--glass-edge);
-  background:
-    linear-gradient(165deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 40%),
-    linear-gradient(160deg, rgba(8, 22, 36, 0.3), rgba(3, 10, 18, 0.42));
-  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-edge-2);
-}
