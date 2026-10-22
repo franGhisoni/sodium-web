@@ -83,7 +83,7 @@ const CASES: Case[] = [
   {
     id: 'zurgo',
     tag: 'AGENTE IA · MOVILIDAD',
-    name: 'Zurgo · Despacho',
+    name: 'Zur Go',
     desc: 'Pedidos de remis por WhatsApp con IA: el asistente toma origen y destino, cotiza sobre la ruta real y cobra con Mercado Pago. El pedido llega al panel con el chofer más cercano sugerido, y el pasajero ve el auto moverse en el mapa.',
     stat: 'WhatsApp · despacho · app del chofer · seguimiento en vivo',
     shot: ShotZurgo,
@@ -508,7 +508,7 @@ function ShotZurgo() {
       <text x="184" y="31" fontSize="6.5" fill="#cfdce9" fontFamily="ui-sans-serif">Un remis a Hospital Evita</text>
       <rect x="196" y="38" width="62" height="16" rx="4" fill="#1f4d3a" />
       <text x="202" y="48" fontSize="6.5" fill="#bfe9cf" fontFamily="ui-sans-serif">Cotizado · MP ✓</text>
-      <text x="14" y="22" fontSize="11" fill="#f4f8fc" fontFamily="ui-serif, Georgia" letterSpacing="3">DESPACHO</text>
+      <text x="14" y="22" fontSize="11" fill="#f4f8fc" fontFamily="ui-serif, Georgia" letterSpacing="3">ZUR GO</text>
       <text x="14" y="34" fontSize="6.5" fill="#94a8bd" fontFamily="ui-monospace, monospace" letterSpacing="1.5">3 AUTOS · 1 VIAJE EN CURSO</text>
     </svg>
   );
