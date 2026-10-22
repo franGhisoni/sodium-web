@@ -39,14 +39,15 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Apex-up prism, rolled 12°: the beam rises from the lower left under
+        {/* Apex-up prism, rolled 5°: the beam rises from the lower left under
             the copy and meets the near face at ~50° (no total internal
             reflection at rest); the spectrum falls down-right towards the
-            content below. */}
+            content below. At 5° the light keeps entering the same face and
+            leaving by the same one across the whole pointer sweep. */}
         {/* No prism on phones: its beam made the scene stutter while scrolling. */}
         {!mobile && (
           <>
-            <SceneAnchor kind="prism" className="hero-prism-anchor" rotation={12} beamAngle={-10} />
+            <SceneAnchor kind="prism" className="hero-prism-anchor" rotation={5} beamAngle={-10} />
             <SceneAnchor kind="prism" className="hero-prism-anchor--mobile" rotation={12} beamAngle={0} />
           </>
         )}
