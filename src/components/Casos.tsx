@@ -81,6 +81,14 @@ const CASES: Case[] = [
     shot: ShotZellgo,
   },
   {
+    id: 'zurgo',
+    tag: 'AGENTE IA · MOVILIDAD',
+    name: 'Zurgo · Despacho',
+    desc: 'Pedidos de remis por WhatsApp con IA: el asistente toma origen y destino, cotiza sobre la ruta real y cobra con Mercado Pago. El pedido llega al panel con el chofer más cercano sugerido, y el pasajero ve el auto moverse en el mapa.',
+    stat: 'WhatsApp · despacho · app del chofer · seguimiento en vivo',
+    shot: ShotZurgo,
+  },
+  {
     id: 'instituto-ghisoni',
     img: '/cases/instituto.png',
     tag: 'SISTEMA CLÍNICO · SALUD',
@@ -465,6 +473,43 @@ function ShotLakshmi() {
         <rect x="206" y="90" width="4" height="4" fill="#f7e2a3" />
       </g>
       <text x="140" y="158" fontSize="6.5" fill="#d9d2c4" fillOpacity="0.7" textAnchor="middle" fontFamily="ui-monospace, monospace" letterSpacing="2.5">GOLDEN TICKET · 3D EN TIEMPO REAL</text>
+    </svg>
+  );
+}
+
+function ShotZurgo() {
+  return (
+    <svg viewBox="0 0 280 175" preserveAspectRatio="xMidYMid slice">
+      <rect width="280" height="175" fill="#0b1220" />
+      <g stroke="#1c2a44" strokeWidth="6" fill="none" strokeLinecap="round">
+        <path d="M-10 120 L90 100 L170 130 L290 90" />
+        <path d="M60 -10 L80 90 L70 190" />
+        <path d="M170 -10 L170 130 L200 190" />
+      </g>
+      <g stroke="#162238" strokeWidth="2" fill="none">
+        <path d="M-10 60 L290 40" />
+        <path d="M120 -10 L130 190" />
+        <path d="M230 -10 L240 190" />
+      </g>
+      <path d="M80 90 L90 100 L170 130 L215 112" fill="none" stroke="#7aa2ff" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="1 5" />
+      <circle cx="80" cy="90" r="5" fill="#7aa2ff" />
+      <circle cx="80" cy="90" r="10" fill="#7aa2ff" fillOpacity="0.2" />
+      <circle cx="215" cy="112" r="5" fill="#7fc89a" />
+      {[[120, 118], [185, 70], [40, 140]].map(([x, y], i) => (
+        <g key={i}>
+          <rect x={x - 5} y={y - 3} width="10" height="6" rx="2" fill="#f4f8fc" fillOpacity="0.85" />
+        </g>
+      ))}
+      <g transform="translate(150 118)">
+        <rect x="-6" y="-4" width="12" height="8" rx="2.5" fill="#f5c451" />
+      </g>
+      <rect x="170" y="14" width="96" height="48" rx="6" fill="#0f1a2e" stroke="#7aa2ff" strokeOpacity="0.35" />
+      <rect x="178" y="22" width="62" height="12" rx="4" fill="#1d2d4a" />
+      <text x="184" y="31" fontSize="6.5" fill="#cfdce9" fontFamily="ui-sans-serif">Un remis a Hospital Evita</text>
+      <rect x="196" y="38" width="62" height="16" rx="4" fill="#1f4d3a" />
+      <text x="202" y="48" fontSize="6.5" fill="#bfe9cf" fontFamily="ui-sans-serif">Cotizado · MP ✓</text>
+      <text x="14" y="22" fontSize="11" fill="#f4f8fc" fontFamily="ui-serif, Georgia" letterSpacing="3">DESPACHO</text>
+      <text x="14" y="34" fontSize="6.5" fill="#94a8bd" fontFamily="ui-monospace, monospace" letterSpacing="1.5">3 AUTOS · 1 VIAJE EN CURSO</text>
     </svg>
   );
 }
