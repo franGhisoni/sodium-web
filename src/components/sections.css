@@ -1129,9 +1129,9 @@
 
 @media (max-width: 980px) {
   .section { padding: 80px 0; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
   .stat:nth-child(2) { border-right: none; }
-  .stat:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+  .stat:nth-child(-n+2):not(:nth-last-child(-n+2)) { border-bottom: 1px solid var(--line); }
   .proc-row {
     grid-template-columns: 60px 1fr;
     row-gap: 4px;
