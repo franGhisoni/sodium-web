@@ -17,10 +17,24 @@ export function CrystalScene() {
     const params = new URLSearchParams(location.search);
     const mobile = matchMedia('(max-width: 768px), (pointer: coarse)').matches;
     const root = document.documentElement;
-    if (params.has('nogl') || (mobile && !params.has('gl'))) {
+    if (params.has('nogl')) {
       canvas.style.display = 'none';
       root.classList.add('no-scene');
       return;
+    }
+    if (mobile && !params.has('gl')) {
+      root.classList.add('no-scene', 'lite-scene');
+      let stopLite: (() => void) | null = null;
+      let gone = false;
+      import('./liteScene').then(({ startLiteScene }) => {
+        if (gone) return;
+        stopLite = startLiteScene(canvas);
+        if (!stopLite) canvas.style.display = 'none';
+      });
+      return () => {
+        gone = true;
+        stopLite?.();
+      };
     }
     /* three.js loads in its own chunk so the page paints first. */
     let stop: (() => void) | null = null;
