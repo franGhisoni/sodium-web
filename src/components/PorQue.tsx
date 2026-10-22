@@ -30,9 +30,8 @@ export function PorQue() {
 
         <div className="porque-pillars">
           {PILARES.map(p => (
-            <Glass key={p.n} className="porque-card" padding="40px">
+            <Glass key={p.n} className="porque-card" padding="32px 36px">
               <div>
-                <span className="porque-num">{p.n}</span>
                 <h3 className="porque-card-title">{p.t}</h3>
                 <p className="porque-card-text">{p.d}</p>
               </div>

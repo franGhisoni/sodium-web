@@ -1327,11 +1327,13 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
         y += Math.sin(t * 0.5 + c.ph) * 0.12;
       }
 
-      /* Depth in view space: skip what's behind/too close, fade with distance. */
+      /* Depth in view space: skip what's behind/too close, fade with distance.
+         Nothing shows in front of the card slabs (depth < CARD_DIST): they refract
+         the world image, so a crystal there shears into shards across a card. */
       const depth = -v.set(x, y, z).applyMatrix4(camera.matrixWorldInverse).z;
       /* Far ones fade early: perspective bunches them towards the centre,
          behind the copy; they appear as the camera flies in. */
-      const fade = depth < 1.2 ? 0 : smooth(1.2, 5.0, depth) * (1 - smooth(18, 30, depth));
+      const fade = depth < CARD_DIST ? 0 : smooth(CARD_DIST, CARD_DIST + 4, depth) * (1 - smooth(18, 30, depth));
       mesh.visible = fade >= 0.01;
       if (!mesh.visible) continue;
 
