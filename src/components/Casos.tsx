@@ -12,7 +12,7 @@ interface Case {
   img?: string;
   featured?: boolean;
   chips?: string[];
-  shot: () => React.ReactElement;
+  shot?: () => React.ReactElement;
 }
 
 const CASES: Case[] = [
@@ -35,6 +35,24 @@ const CASES: Case[] = [
     stat: 'Score IA por lead · 5 etapas de pipeline',
     live: 'https://demo.peitho.ghisoni.com.ar/',
     shot: ShotPeithoEstates,
+  },
+  {
+    id: 'sodium-retail',
+    img: '/cases/retail.jpg',
+    tag: 'GESTIÓN · RETAIL',
+    name: 'Sodium Retail',
+    desc: 'Una plataforma para varios negocios: kiosco, supermercado, ferretería y alquiler de ski, cada uno con su caja, stock, usuarios y facturación electrónica, y un panel para verlos todos juntos.',
+    stat: 'Factura A y B con ARCA · vende sin internet',
+    live: 'https://sodium-retail-production.up.railway.app/',
+  },
+  {
+    id: 'impacto-castex',
+    img: '/cases/impacto.jpg',
+    tag: 'MEDIO DIGITAL · NOTICIAS',
+    name: 'Impacto Castex',
+    desc: 'Diario digital de Eduardo Castex, La Pampa: sitio público con radio en vivo y panel de redacción con flujo de revisión por roles, métricas de lectura sin cookies y SEO para Google News.',
+    stat: 'En producción · impactocastex.com.ar',
+    live: 'https://impactocastex.com.ar/',
   },
   {
     id: 'hermes',
@@ -82,6 +100,8 @@ const CASES: Case[] = [
   },
   {
     id: 'zurgo',
+    img: '/cases/zurgo.jpg',
+    live: 'https://demo-production-9fef.up.railway.app/',
     tag: 'AGENTE IA · MOVILIDAD',
     name: 'Zur Go',
     desc: 'Pedidos de remis por WhatsApp con IA: el asistente toma origen y destino, cotiza sobre la ruta real y cobra con Mercado Pago. El pedido llega al panel con el chofer más cercano sugerido, y el pasajero ve el auto moverse en el mapa.',
@@ -178,7 +198,7 @@ export function Casos() {
               </div>
               <div className="case-meta">
                 <span>{c.tag}</span>
-                <span>/0{i + 1}</span>
+                <span>/{String(i + 1).padStart(2, '0')}</span>
               </div>
               <h3 className="case-name">{c.name}</h3>
               <p className="case-desc">{c.desc}</p>
@@ -211,7 +231,7 @@ function CaseShot({ c }: { c: Case }) {
   if (c.img) {
     return <img src={c.img} alt={`Captura de ${c.name}`} loading="lazy" decoding="async" />;
   }
-  return <c.shot />;
+  return c.shot ? <c.shot /> : null;
 }
 
 function CaseModal({ c, onClose }: { c: Case; onClose: () => void }) {
