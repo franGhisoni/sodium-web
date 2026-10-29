@@ -1,0 +1,88 @@
+/* Páginas legales de Sodium Software (privacidad, eliminación de datos). */
+
+:root {
+  --bg-deep: #071623;
+  --bg-1: #0c1d2d;
+  --ink: #f4f8fc;
+  --ink-2: #cfdce9;
+  --ink-3: #94a8bd;
+  --line: rgba(244, 248, 252, 0.1);
+  --accent: #a9c8e3;
+  --sans: 'Inter Tight', ui-sans-serif, system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg-deep);
+  color: var(--ink-2);
+  font: 400 1.0625rem/1.7 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 3rem 1rem 5rem;
+}
+
+.brand {
+  display: inline-block;
+  margin-bottom: 3rem;
+  font: 500 0.8125rem/1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(2rem, 6vw, 2.75rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.updated {
+  margin: 0 0 2.5rem;
+  font: 400 0.8125rem/1.4 var(--mono);
+  color: var(--ink-3);
+}
+
+h2 {
+  margin: 2.75rem 0 0.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+p, li { margin: 0 0 0.9rem; }
+ul, ol { padding-left: 1.25rem; }
+strong { color: var(--ink); font-weight: 600; }
+
+a { color: var(--accent); text-underline-offset: 3px; }
+a:hover { color: var(--ink); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+.callout {
+  margin: 1.5rem 0;
+  padding: 1.25rem 1.5rem;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.callout p:last-child { margin-bottom: 0; }
+
+footer {
+  margin-top: 4rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.875rem;
+  color: var(--ink-3);
+}
