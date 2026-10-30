@@ -1,4 +1,17 @@
 import { useEffect, useState } from 'react';
+import {
+  CasoDetalle,
+  DETALLE_ETERNA,
+  DETALLE_FLUX,
+  DETALLE_HERMES,
+  DETALLE_INSTITUTO,
+  DETALLE_LAKSHMI,
+  DETALLE_METRON,
+  DETALLE_ZELLGO,
+  DETALLE_ZURGO,
+  type DetailSection,
+} from './CasoDetalle';
+import { CasoImpacto } from './CasoImpacto';
 import { Glass } from './Glass';
 import './sections.css';
 
@@ -13,6 +26,9 @@ interface Case {
   featured?: boolean;
   chips?: string[];
   shot?: () => React.ReactElement;
+  detail?: () => React.ReactElement;
+  sections?: DetailSection[];
+  liveLabel?: string;
 }
 
 const CASES: Case[] = [
@@ -50,9 +66,11 @@ const CASES: Case[] = [
     img: '/cases/impacto.jpg',
     tag: 'MEDIO DIGITAL · NOTICIAS',
     name: 'Impacto Castex',
-    desc: 'Diario digital de Eduardo Castex, La Pampa: sitio público con radio en vivo y panel de redacción con flujo de revisión por roles, métricas de lectura sin cookies y SEO para Google News.',
+    desc: 'Diario digital de Eduardo Castex, La Pampa: sitio público con radio en vivo y panel de redacción accesible, integrado con Hermes y con placas y copys para redes generados con IA.',
     stat: 'En producción · impactocastex.com.ar',
     live: 'https://impactocastex.com.ar/',
+    liveLabel: 'Abrir el diario',
+    detail: CasoImpacto,
   },
   {
     id: 'hermes',
@@ -61,6 +79,7 @@ const CASES: Case[] = [
     desc: 'Procesamiento automático de noticias con scoring, agrupación por tema y editor multi-medio.',
     stat: '540 artículos / día · 12 medios',
     shot: ShotHermes,
+    sections: DETALLE_HERMES,
   },
   {
     id: 'flux',
@@ -70,6 +89,7 @@ const CASES: Case[] = [
     stat: '$29.4M USD analizados',
     live: 'https://flux-dashboard-production.up.railway.app/marca-test',
     shot: ShotFlux,
+    sections: DETALLE_FLUX,
   },
   {
     id: 'rosaura',
@@ -82,6 +102,15 @@ const CASES: Case[] = [
     shot: ShotRosaura,
   },
   {
+    id: 'eterna',
+    tag: 'AGENTE IA · ESTÉTICA',
+    name: 'Eterna',
+    desc: 'Sitio y reservas para un centro de depilación láser y estética médica en Lomas de Zamora: chat con IA, seña por Mercado Pago o transferencia y panel interno.',
+    stat: 'Chat de reservas · seña · panel de pacientes',
+    shot: ShotEterna,
+    sections: DETALLE_ETERNA,
+  },
+  {
     id: 'metron',
     tag: 'PRODUCTO · FINTECH',
     name: 'Metron',
@@ -89,6 +118,7 @@ const CASES: Case[] = [
     stat: '99.98% uptime · 18 meses',
     live: 'https://metron.ghisoni.com.ar/',
     shot: ShotMetron,
+    sections: DETALLE_METRON,
   },
   {
     id: 'zellgo',
@@ -97,6 +127,7 @@ const CASES: Case[] = [
     desc: 'ERP/CRM para administradora financiera. Clientes, leads, pagos, membresías, reportería custom.',
     stat: '60.450 registros operativos',
     shot: ShotZellgo,
+    sections: DETALLE_ZELLGO,
   },
   {
     id: 'zurgo',
@@ -107,6 +138,7 @@ const CASES: Case[] = [
     desc: 'Pedidos de remis por WhatsApp con IA: el asistente toma origen y destino, cotiza sobre la ruta real y cobra con Mercado Pago. El pedido llega al panel con el chofer más cercano sugerido, y el pasajero ve el auto moverse en el mapa.',
     stat: 'WhatsApp · despacho · app del chofer · seguimiento en vivo',
     shot: ShotZurgo,
+    sections: DETALLE_ZURGO,
   },
   {
     id: 'instituto-ghisoni',
@@ -116,6 +148,7 @@ const CASES: Case[] = [
     desc: 'Sistema clínico para consultorios de ginecología: agenda sin solapamientos, fichas de pacientes, consultas, estudios en PDF, roles con auditoría y migración del sistema anterior.',
     stat: 'Agenda · Historia clínica · Roles y auditoría',
     shot: ShotInstituto,
+    sections: DETALLE_INSTITUTO,
   },
   {
     id: 'lakshmi',
@@ -128,6 +161,7 @@ const CASES: Case[] = [
     featured: true,
     chips: ['WebGL / Three.js', 'Material holográfico', 'Talón con QR', 'Chat con IA', 'Panel por roles'],
     shot: ShotLakshmi,
+    sections: DETALLE_LAKSHMI,
   },
 ];
 
@@ -192,8 +226,8 @@ export function Casos() {
             <Glass key={c.id} className="case-card" padding="18px" onClick={() => setActive(c)}>
               <div className="case-shot">
                 <CaseShot c={c} />
-                <span className="case-load-btn" aria-hidden="true">
-                  <span>+</span> Ver detalle
+                <span className={`case-load-btn${hasDetail(c) ? ' is-visible' : ''}`} aria-hidden="true">
+                  <span>+</span> {hasDetail(c) ? 'Ver caso completo' : 'Ver detalle'}
                 </span>
               </div>
               <div className="case-meta">
@@ -227,6 +261,8 @@ export function Casos() {
   );
 }
 
+const hasDetail = (c: Case) => Boolean(c.detail || c.sections);
+
 function CaseShot({ c }: { c: Case }) {
   if (c.img) {
     return <img src={c.img} alt={`Captura de ${c.name}`} loading="lazy" decoding="async" />;
@@ -251,7 +287,7 @@ function CaseModal({ c, onClose }: { c: Case; onClose: () => void }) {
   return (
     <div className="case-modal-backdrop" onClick={onClose} role="presentation">
       <div
-        className="case-modal"
+        className={`case-modal${hasDetail(c) ? ' case-modal--wide' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-label={c.name}
@@ -274,7 +310,7 @@ function CaseModal({ c, onClose }: { c: Case; onClose: () => void }) {
           <div className="case-modal-actions">
             {c.live && (
               <a href={c.live} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
-                Abrir demo
+                {c.liveLabel ?? 'Abrir demo'}
                 <span className="btn-arrow" aria-hidden="true">↗</span>
               </a>
             )}
@@ -282,6 +318,8 @@ function CaseModal({ c, onClose }: { c: Case; onClose: () => void }) {
               Cerrar
             </button>
           </div>
+          {c.detail && <c.detail />}
+          {c.sections && <CasoDetalle sections={c.sections} />}
         </div>
       </div>
     </div>
@@ -530,6 +568,22 @@ function ShotZurgo() {
       <text x="202" y="48" fontSize="6.5" fill="#bfe9cf" fontFamily="ui-sans-serif">Cotizado · MP ✓</text>
       <text x="14" y="22" fontSize="11" fill="#f4f8fc" fontFamily="ui-serif, Georgia" letterSpacing="3">ZUR GO</text>
       <text x="14" y="34" fontSize="6.5" fill="#94a8bd" fontFamily="ui-monospace, monospace" letterSpacing="1.5">3 AUTOS · 1 VIAJE EN CURSO</text>
+    </svg>
+  );
+}
+
+function ShotEterna() {
+  return (
+    <svg viewBox="0 0 280 175" preserveAspectRatio="xMidYMid slice">
+      <rect width="280" height="175" fill="#f6efe9" />
+      <text x="20" y="44" fontSize="26" fill="#3a2a26" fontFamily="ui-serif, Georgia" letterSpacing="1">Eterna</text>
+      <text x="20" y="60" fontSize="6.5" fill="#8a6f66" fontFamily="ui-monospace, monospace" letterSpacing="1.5">ESTÉTICA MÉDICA · LOMAS DE ZAMORA</text>
+      <rect x="20" y="78" width="136" height="24" rx="10" fill="#ffffff" stroke="#e6d8cf" />
+      <text x="30" y="93" fontSize="7.5" fill="#3a2a26" fontFamily="ui-sans-serif">¿Tienen turno para el jueves?</text>
+      <rect x="92" y="110" width="168" height="24" rx="10" fill="#3a2a26" />
+      <text x="102" y="125" fontSize="7.5" fill="#f6efe9" fontFamily="ui-sans-serif">Sí, a las 16 h. ¿Te reservo el lugar?</text>
+      <rect x="196" y="142" width="64" height="18" rx="9" fill="#c98f7b" />
+      <text x="228" y="154" fontSize="7" fill="#ffffff" textAnchor="middle" fontFamily="ui-sans-serif" fontWeight="600">Pagar seña</text>
     </svg>
   );
 }
