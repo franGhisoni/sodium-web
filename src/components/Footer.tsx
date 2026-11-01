@@ -29,7 +29,7 @@ export function Footer() {
             </div>
             <div>
               <h5>Contacto</h5>
-              <a href="mailto:softwaresodium@gmail.com">softwaresodium@gmail.com</a>
+              <a href="mailto:contacto@sodium.com.ar">contacto@sodium.com.ar</a>
               <a href="https://wa.me/5491125918111" target="_blank" rel="noopener noreferrer">
                 WhatsApp · 11 2591 8111
               </a>

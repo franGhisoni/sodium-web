@@ -22,10 +22,7 @@ export function useIsMobile(): boolean {
   );
 }
 
-/** Link props for "start a project" buttons: WhatsApp on mobile, the contact section elsewhere. */
+/** Link props for "start a project" buttons: always WhatsApp. */
 export function useContactLink() {
-  const mobile = useIsMobile();
-  return mobile
-    ? { href: WHATSAPP_URL, target: '_blank', rel: 'noopener noreferrer' }
-    : { href: '#contacto' };
+  return { href: WHATSAPP_URL, target: '_blank', rel: 'noopener noreferrer' };
 }
