@@ -131,6 +131,15 @@ const CASES: Case[] = [
     sections: DETALLE_ZURGO,
   },
   {
+    id: 'house24',
+    img: '/cases/house24.jpg',
+    live: 'https://house24-demo-production.up.railway.app/',
+    tag: 'GESTIÓN · SALUD DOMICILIARIA',
+    name: 'House24',
+    desc: 'Plataforma de asistencia domiciliaria: los médicos cargan y firman sus informes, la coordinación gestiona pacientes, cupos y visitas, y la jefatura ve toda la operación. Con ruteo de visitas, informes por obra social y app para el médico.',
+    stat: 'Informes firmados · ruteo de visitas · PAMI y obras sociales',
+  },
+  {
     id: 'instituto-ghisoni',
     img: '/cases/instituto.png',
     tag: 'SISTEMA CLÍNICO · SALUD',
