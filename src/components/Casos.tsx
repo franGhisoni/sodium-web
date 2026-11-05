@@ -3,7 +3,6 @@ import {
   CasoDetalle,
   DETALLE_ETERNA,
   DETALLE_FLUX,
-  DETALLE_HERMES,
   DETALLE_INSTITUTO,
   DETALLE_LAKSHMI,
   DETALLE_METRON,
@@ -66,20 +65,11 @@ const CASES: Case[] = [
     img: '/cases/impacto.jpg',
     tag: 'MEDIO DIGITAL · NOTICIAS',
     name: 'Impacto Castex',
-    desc: 'Diario digital de Eduardo Castex, La Pampa: sitio público con radio en vivo y panel de redacción accesible, integrado con Hermes y con placas y copys para redes generados con IA.',
+    desc: 'Diario digital de Eduardo Castex, La Pampa: sitio público con radio en vivo y panel de redacción accesible, que recibe notas por API desde un motor de noticias con IA y genera placas y copys para redes generados con IA.',
     stat: 'En producción · impactocastex.com.ar',
     live: 'https://impactocastex.com.ar/',
     liveLabel: 'Abrir el diario',
     detail: CasoImpacto,
-  },
-  {
-    id: 'hermes',
-    tag: 'PLATAFORMA · NOTICIAS',
-    name: 'Hermes',
-    desc: 'Procesamiento automático de noticias con scoring, agrupación por tema y editor multi-medio.',
-    stat: '540 artículos / día · 12 medios',
-    shot: ShotHermes,
-    sections: DETALLE_HERMES,
   },
   {
     id: 'flux',
@@ -373,29 +363,6 @@ function ShotPeithoEstates() {
         </g>
       ))}
       <text x="14" y="168" fontSize="6" fill="#94a3b8" fontFamily="ui-monospace, monospace" letterSpacing="0.5">SIGUIENTE MEJOR ACCIÓN · REACTIVACIÓN AUTOMÁTICA</text>
-    </svg>
-  );
-}
-
-function ShotHermes() {
-  return (
-    <svg viewBox="0 0 280 175" preserveAspectRatio="xMidYMid slice">
-      <rect width="280" height="175" fill="#f5ecd8" />
-      <text x="14" y="20" fontSize="10" fill="#1a1410" fontFamily="ui-sans-serif" fontWeight="700">Hermes</text>
-      <text x="60" y="20" fontSize="7" fill="#5a3a1a" fontFamily="ui-monospace, monospace" letterSpacing="1.5">PLATAFORMA AUTOMÁTICA DE NOTICIAS</text>
-      <text x="14" y="42" fontSize="13" fill="#1a1410" fontFamily="ui-sans-serif" fontWeight="600" letterSpacing="-0.5">Noticias procesadas</text>
-      {[0, 1, 2, 3].map(i => (
-        <g key={i}>
-          <rect x={14 + i * 65} y="52" width="58" height="48" fill="#1a2838" />
-          <rect x={62 + i * 65} y="55" width="22" height="9" fill="#f5ecd8" />
-          <text x={73 + i * 65} y="62" fontSize="5" fill="#1a1410" textAnchor="middle" fontFamily="ui-monospace, monospace">Score: 4</text>
-          <rect x={14 + i * 65} y="106" width="58" height="2.5" fill="#1a1410" />
-          <rect x={14 + i * 65} y="112" width="48" height="1.5" fill="#5a3a1a" />
-          <rect x={14 + i * 65} y="116" width="52" height="1.5" fill="#5a3a1a" />
-          <rect x={14 + i * 65} y="120" width="40" height="1.5" fill="#5a3a1a" />
-        </g>
-      ))}
-      <text x="14" y="150" fontSize="8" fill="#5a3a1a" fontFamily="ui-monospace, monospace" letterSpacing="1">540 ARTÍCULOS · PÁG 1 DE 12</text>
     </svg>
   );
 }

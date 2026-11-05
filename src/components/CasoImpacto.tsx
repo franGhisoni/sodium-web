@@ -7,8 +7,8 @@ const USABILIDAD: Array<[string, string]> = [
   ['Métricas que se leen', 'Visitas por nota, redactor y sección, sin cookies. Cada gráfico tiene su resumen en texto y su tabla, y se exporta a CSV.'],
 ];
 
-const HERMES: Array<[string, string, string]> = [
-  ['01', 'Capta y redacta', 'Hermes toma noticias de distintas fuentes, las puntúa, las reescribe y elige o genera la imagen.'],
+const MOTOR: Array<[string, string, string]> = [
+  ['01', 'Capta y redacta', 'El motor toma noticias de distintas fuentes, las puntúa, las reescribe y elige o genera la imagen.'],
   ['02', 'Entrega por API', 'La nota entra por una API con clave propia y con los permisos de esa cuenta. Si se reenvía, no se duplica.'],
   ['03', 'Respeta el flujo', 'Llega como borrador, en revisión o publicada, según lo que se configure. Sin texto alternativo en la imagen, queda en borrador.'],
   ['04', 'Sale a redes', 'Las notas publicadas pueden compartirse en Facebook e Instagram, con su placa y su copy, sin duplicar posteos.'],
@@ -58,13 +58,13 @@ export function CasoImpacto() {
       </section>
 
       <section className="caso-block">
-        <h4 className="caso-title">Integrado con Hermes</h4>
+        <h4 className="caso-title">Integrado con un motor de noticias</h4>
         <p className="caso-lead">
-          Hermes es el motor de noticias de Sodium. El diario lo recibe como a un redactor más,
+          El diario recibe notas de un motor de noticias con IA como a un redactor más,
           con firma propia y dentro de las mismas reglas que el resto del equipo.
         </p>
         <ol className="caso-flow">
-          {HERMES.map(([n, title, text]) => (
+          {MOTOR.map(([n, title, text]) => (
             <li key={n} className="caso-step">
               <span className="caso-step-n">{n}</span>
               <strong>{title}</strong>
