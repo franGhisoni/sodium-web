@@ -76,14 +76,36 @@ void main() {
 }
 `;
 
-/* Backdrop + traced beams, in linear working space (world renders into rtWorld). */
+/* Backdrop + traced beams. u_mode picks the output:
+   0  linear working space, opaque (rtWorld and three's transmission targets);
+   1  display space straight to the canvas (the backdrop-only layer on touch);
+   2  pinned layer: only the pixels the beams light up, premultiplied, so the
+      page-riding canvas stays transparent everywhere else. */
 const WORLD_BG_FRAG = BG_FRAG.replace(
   'varying vec2  v_uv;',
-  'varying vec2  v_uv;\nuniform sampler2D u_beams;',
+  'varying vec2  v_uv;\nuniform sampler2D u_beams;\nuniform float u_mode;',
 ).replace(
   'gl_FragColor = vec4(pow(max(col, 0.0), vec3(2.2)), 1.0);',
-  'gl_FragColor = vec4(pow(max(col, 0.0), vec3(2.2)) + texture2D(u_beams, v_uv).rgb, 1.0);',
+  `vec3 lin = pow(max(col, 0.0), vec3(2.2));
+  vec3 beam = texture2D(u_beams, v_uv).rgb;
+  if (u_mode < 0.5) {
+    gl_FragColor = vec4(lin + beam, 1.0);
+  } else if (u_mode < 1.5) {
+    gl_FragColor = vec4(col, 1.0);
+  } else {
+    float a = max(beam.r, max(beam.g, beam.b));
+    if (a < 0.001) discard;
+    a = clamp(a * 20.0, 0.0, 1.0);
+    gl_FragColor = vec4((lin + beam) * a, a);
+  }`,
 );
+
+/* The backdrop as a function, for the pinned layer's screen quad: under the
+   pinned pieces it has to put the same backdrop the other canvas shows. */
+const BG_FUNC = BG_FRAG.replace('precision highp float;', '')
+  .replace('varying vec2  v_uv;', '')
+  .replace('void main() {', 'vec3 bgColor() {')
+  .replace('gl_FragColor = vec4(pow(max(col, 0.0), vec3(2.2)), 1.0);', 'return pow(max(col, 0.0), vec3(2.2));');
 
 /* The finished world image, drawn opaque so the card slabs refract it. It
    is drawn twice per frame: linear into three's transmission target (so the
@@ -92,14 +114,31 @@ const WORLD_BG_FRAG = BG_FRAG.replace(
 const WORLD_QUAD_FRAG = `
 uniform sampler2D tWorld;
 uniform float uScreen;
+uniform float uPinned;
 varying vec2 v_uv;
+${BG_FUNC}
+vec3 toScreen(vec3 c) {
+  c = max(c, 0.0);
+  c = mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c));
+  return c + (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;
+}
 void main() {
-  vec3 c = texture2D(tWorld, v_uv).rgb;
-  if (uScreen > 0.5) {
-    c = max(c, 0.0);
-    c = mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c));
-    c += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;
+  vec4 w = texture2D(tWorld, v_uv);
+  vec3 c = w.rgb;
+  if (uPinned > 0.5) {
+    /* Premultiplied image of the pinned pieces. Additive glows that landed on
+       empty pixels carry no alpha: their brightness becomes their coverage. */
+    float a = clamp(max(w.a, max(c.r, max(c.g, c.b))), 0.0, 1.0);
+    if (uScreen > 0.5) {
+      if (a < 0.002) discard;
+      gl_FragColor = vec4(toScreen(c / a) * a, a);
+    } else {
+      /* Transmission source for the card slabs: the backdrop under the pieces. */
+      gl_FragColor = vec4(bgColor() * (1.0 - a) + c, 1.0);
+    }
+    return;
   }
+  if (uScreen > 0.5) c = toScreen(c);
   gl_FragColor = vec4(c, 1.0);
 }
 `;
@@ -695,15 +734,41 @@ type AnchorPiece = {
   dispose: () => void;
 };
 
-export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
+/**
+ * Which layers a canvas draws.
+ *
+ * - 'all': everything on one fixed canvas (desktop).
+ * - 'world': the backdrop and the octahedra, on a fixed canvas.
+ * - 'pinned': everything tied to the DOM (prisms, beams, fractal, card
+ *   slabs) on a transparent canvas that rides the page.
+ *
+ * Touch devices scroll on the compositor thread, so anything placed from JS
+ * on a fixed canvas lands a frame behind the page and visibly trails the
+ * cards while scrolling. Splitting the scene puts each layer in its natural
+ * frame: the backdrop stays with the viewport, the slabs scroll with their
+ * cards (the compositor moves both), and only the frame-late placement of
+ * the canvas itself remains, hidden by the overscan.
+ */
+export type SceneLayers = 'all' | 'world' | 'pinned';
+
+/* One clock for both canvases, so their backdrops agree pixel for pixel. */
+const EPOCH = performance.now();
+
+export function startScene(canvas: HTMLCanvasElement, layers: SceneLayers = 'all'): (() => void) | null {
+  const pinned = layers === 'pinned';
+  const hasWorld = layers !== 'pinned';
+  const hasPinned = layers !== 'world';
+  /* The backdrop-only layer draws straight to the canvas: no HDR target, no quad. */
+  const direct = layers === 'world';
   let renderer: WebGLRenderer;
   try {
-    renderer = new WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
+    renderer = new WebGLRenderer({ canvas, antialias: false, alpha: pinned, premultipliedAlpha: true, powerPreference: 'high-performance' });
   } catch {
     return null;
   }
   renderer.toneMapping = NoToneMapping;
   renderer.outputColorSpace = SRGBColorSpace;
+  if (pinned) renderer.setClearColor(0x000000, 0);
   const mobile = matchMedia('(max-width: 768px), (pointer: coarse)').matches;
   const touch = matchMedia('(pointer: coarse)').matches;
   renderer.transmissionResolutionScale = 0.5;
@@ -718,10 +783,12 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
      back every frame, which reads as small jumps. It's off by default: the
      canvas stays fixed. `?sync` brings it back. */
   const params = new URLSearchParams(location.search);
-  const synced = touch && params.has('sync');
+  const synced = pinned || (touch && params.has('sync'));
   /* `?lead`: experimental scroll prediction (off by default). */
   const predict = synced && params.has('lead');
-  const OVERSCAN = synced ? (predict ? 140 : 80) : 0;
+  /* The canvas is placed from JS, so it lands a frame late too: the overscan
+     covers the distance a fling moves in that frame. */
+  const OVERSCAN = synced ? (predict ? 140 : 120) : 0;
   if (synced) {
     canvas.classList.add('scene-canvas--synced');
     canvas.style.height = `calc(100lvh + ${2 * OVERSCAN}px)`;
@@ -818,6 +885,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
       u_scroll: { value: 0 },
       u_soft: { value: 0 },
       u_beams: { value: rtBeams.texture },
+      u_mode: { value: 0 },
     },
   });
   const bgMesh = fullscreen(bgMat);
@@ -826,10 +894,16 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
      and drop its 4x MSAA resolve on mobile. */
   bgMesh.onBeforeRender = () => {
     const rt = renderer.getRenderTarget();
-    bgMat.uniforms.u_soft.value = rt === rtWorld ? 0 : 1;
+    const main = rt === rtWorld || (direct && rt === null);
+    bgMat.uniforms.u_soft.value = main ? 0 : 1;
+    bgMat.uniforms.u_mode.value = !main ? 0 : direct ? 1 : pinned ? 2 : 0;
     if (mobile && rt && rt !== rtWorld && rt.samples > 0) transRtWorld = rt;
   };
   world.add(bgMesh);
+  /* Nothing ever draws into the beam target on the backdrop-only layer. */
+  renderer.setRenderTarget(rtBeams);
+  renderer.clear();
+  renderer.setRenderTarget(null);
 
   const octGeo = new OctahedronGeometry(1.3, 0);
   const edgeGeo = new EdgesGeometry(octGeo);
@@ -884,7 +958,7 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
   /* Two in the hero cluster, then every fourth crystal down the corridor. */
   const isMirror = (i: number) => i === 1 || i === 4 || (i >= HERO_REL.length && (i - HERO_REL.length) % 4 === 1);
 
-  const cubes = buildCubes().map((c, i) => {
+  const cubes = (hasWorld ? buildCubes() : []).map((c, i) => {
     const baseMat = isMirror(i) ? mirrorMat : octMat;
     const fadeMat = baseMat.clone();
     fadeMat.transparent = true;
@@ -1078,12 +1152,28 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
   };
 
   /* ── 3 · cards ── */
+  const bu0 = bgMat.uniforms;
   const worldQuadMat = new ShaderMaterial({
     vertexShader: FULLSCREEN_VERT,
     fragmentShader: WORLD_QUAD_FRAG,
     depthTest: false,
     depthWrite: false,
-    uniforms: { tWorld: { value: rtWorld.texture }, uScreen: { value: 1 } },
+    /* On the pinned layer the quad writes premultiplied pixels straight onto
+       the cleared canvas (no blending), and stays opaque so three includes it
+       in the transmission pass the slabs refract. */
+    uniforms: {
+      tWorld: { value: rtWorld.texture },
+      uScreen: { value: 1 },
+      uPinned: { value: pinned ? 1 : 0 },
+      /* Backdrop uniforms, shared with the world shader (same objects). */
+      u_res: bu0.u_res,
+      u_dpr: bu0.u_dpr,
+      u_view: bu0.u_view,
+      u_time: bu0.u_time,
+      u_mouse: bu0.u_mouse,
+      u_scroll: bu0.u_scroll,
+      u_soft: { value: 0 },
+    },
   });
   const worldQuadMesh = fullscreen(worldQuadMat);
   worldQuadMesh.onBeforeRender = () => {
@@ -1182,8 +1272,8 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
     renderer.setSize(cssW, cssH, false);
     renderer.getDrawingBufferSize(buf);
     const ww = buf.x, wh = buf.y;
-    rtWorld.setSize(ww, wh);
-    rtBeams.setSize(Math.max(1, buf.x >> 1), Math.max(1, buf.y >> 1));
+    if (!direct) rtWorld.setSize(ww, wh);
+    if (hasPinned) rtBeams.setSize(Math.max(1, buf.x >> 1), Math.max(1, buf.y >> 1));
     camera.aspect = cssW / cssH;
     camera.updateProjectionMatrix();
     beamCam.right = cssW;
@@ -1218,8 +1308,8 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
   if (!touch) addEventListener('pointermove', onPointer, { passive: true });
 
   let raf = 0;
-  const t0 = performance.now();
-  let last = t0;
+  const t0 = EPOCH;
+  let last = performance.now();
   let prog01 = clamp(window.scrollY / maxScroll, 0, 1);
   let vel = 0;
   let scrollVel = 0; /* px/ms */
@@ -1240,16 +1330,19 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
   };
 
   const renderScenePasses = () => {
-    renderer.setRenderTarget(rtBeams);
-    renderer.render(beamScene, beamCam);
+    if (hasPinned) {
+      renderer.setRenderTarget(rtBeams);
+      renderer.render(beamScene, beamCam);
+    }
 
-    renderer.setRenderTarget(rtWorld);
+    renderer.setRenderTarget(direct ? null : rtWorld);
     renderer.render(world, camera);
     if (transRtWorld) {
       transRtWorld.samples = 0;
       transRtWorld.dispose();
       transRtWorld = null;
     }
+    if (direct) return;
 
     renderer.setRenderTarget(null);
     renderer.render(cardScene, camera);
@@ -1351,6 +1444,16 @@ export function startScene(canvas: HTMLCanvasElement): (() => void) | null {
         fadeLineMat.opacity = 0.16 * fade;
         fadeRim.uniforms.u_fade.value = fade;
       }
+    }
+
+    if (!hasPinned) {
+      /* Backdrop-only layer: nothing is tied to the DOM. */
+      if (!warmed) {
+        warmed = true;
+        renderScenePasses();
+      }
+      renderScenePasses();
+      return;
     }
 
     /* Anchored pieces (and their traced beams). */

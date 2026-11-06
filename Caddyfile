@@ -1,0 +1,55 @@
+# Railway (Railpack) serves the Vite build with Caddy. This replaces the
+# default template so hashed assets are cached for a year and the HTML is
+# always revalidated. Based on railpack's node/Caddyfile.template.
+{
+	admin off
+	persist_config off
+	auto_https off
+
+	log {
+		format json
+	}
+
+	servers {
+		trusted_proxies static private_ranges 100.0.0.0/8
+	}
+}
+
+:{$PORT:80} {
+	log {
+		format json
+	}
+
+	respond /health 200
+
+	header {
+		X-Content-Type-Options "nosniff"
+		-Server
+	}
+
+	root * /app/dist
+
+	# Vite hashes everything under /assets: safe to cache forever.
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+
+	# Images and other public files keep their names: a day, then revalidate.
+	@static path /cases/* /clients/* *.svg *.css
+	header @static Cache-Control "public, max-age=86400, stale-while-revalidate=604800"
+
+	# HTML: always check with the server (ETag) so deploys show up at once.
+	@html path / *.html */
+	header @html Cache-Control "no-cache"
+
+	file_server {
+		hide .git
+		hide .env*
+	}
+
+	encode {
+		gzip
+		zstd
+	}
+
+	try_files {path} {path}.html {path}/index.html /index.html
+}
