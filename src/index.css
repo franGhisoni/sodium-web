@@ -96,8 +96,9 @@ img, svg { display: block; max-width: 100%; }
   z-index: -8;
   pointer-events: none;
 }
-/* Touch: the canvas rides the page scroll and is moved back into place
-   each frame, with 80px of overscan above and below (crystalScene.ts). */
+/* Touch: the pinned layer (prisms, beams, fractal, card slabs) rides the
+   page scroll and is moved back into place each frame, with overscan above
+   and below (crystalScene.ts). The backdrop stays on the fixed canvas. */
 .scene-canvas.scene-canvas--synced {
   position: absolute;
   height: calc(100vh + 280px);

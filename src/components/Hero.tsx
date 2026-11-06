@@ -1,11 +1,10 @@
 import { Glass } from './Glass';
 import { SceneAnchor } from './SceneAnchor';
-import { useContactLink, useIsMobile } from '../contact';
+import { useContactLink } from '../contact';
 import './Hero.css';
 
 export function Hero() {
   const contact = useContactLink();
-  const mobile = useIsMobile();
   return (
     <section className="hero" id="top">
       {/* First view: just the promise, two actions and the prism. */}
@@ -44,13 +43,8 @@ export function Hero() {
             reflection at rest); the spectrum falls down-right towards the
             content below. At 5° the light keeps entering the same face and
             leaving by the same one across the whole pointer sweep. */}
-        {/* No prism on phones: its beam made the scene stutter while scrolling. */}
-        {!mobile && (
-          <>
-            <SceneAnchor kind="prism" className="hero-prism-anchor" rotation={5} beamAngle={-10} />
-            <SceneAnchor kind="prism" className="hero-prism-anchor--mobile" rotation={12} beamAngle={0} />
-          </>
-        )}
+        <SceneAnchor kind="prism" className="hero-prism-anchor" rotation={5} beamAngle={-10} />
+        <SceneAnchor kind="prism" className="hero-prism-anchor--mobile" rotation={12} beamAngle={0} />
 
         <a href="#hero-detalle" className="hero-scroll" aria-label="Bajar al contenido">
           <span>Cómo trabajamos</span>
