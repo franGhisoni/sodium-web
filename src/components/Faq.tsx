@@ -1,5 +1,4 @@
 import { QUESTIONS } from '../content/faq';
-import './sections.css';
 
 export function Faq() {
   return (

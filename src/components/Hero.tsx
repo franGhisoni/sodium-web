@@ -2,7 +2,6 @@ import type React from 'react';
 import { Glass } from './Glass';
 import { SceneAnchor } from './SceneAnchor';
 import { useContactLink } from '../contact';
-import './Hero.css';
 
 /** Splits a headline into word spans for the staggered CSS entrance. */
 function Words({ text, from }: { text: string; from: number }) {
@@ -27,10 +26,10 @@ export function Hero() {
           <h1 className="hero-heading">
             <span className="pill hero-pill">
               <span className="pill-dot" />
-              Sodium · Software a medida e IA
+              Software factory · Software a medida
             </span>{' '}
             <span className="hero-title display">
-              <Words text="IA aplicada." from={0} />
+              <Words text="IA aplicada." from={0} />{' '}
               <br />
               <span className="hero-title-accent"><Words text="Impacto real." from={2} /></span>
             </span>

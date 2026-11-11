@@ -1,5 +1,4 @@
 import { Glass } from './Glass';
-import './sections.css';
 
 interface ClientItem {
   id: string;

@@ -1,7 +1,6 @@
 import { Glass } from './Glass';
 import { SceneAnchor } from './SceneAnchor';
 import { WHATSAPP_URL } from '../contact';
-import './sections.css';
 
 export function CTA() {
   return (

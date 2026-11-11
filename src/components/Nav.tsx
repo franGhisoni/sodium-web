@@ -2,7 +2,16 @@ import { useEffect, useState } from 'react';
 import { Logo } from './Logo';
 import { Glass } from './Glass';
 import { useContactLink } from '../contact';
-import './Nav.css';
+
+/** Main sections; plain links, so every page is reachable for people and crawlers. */
+const LINKS: Array<[string, string]> = [
+  ['/software-a-medida', 'Software a medida'],
+  ['/desarrollo-ia', 'IA'],
+  ['/automatizacion', 'Automatización'],
+  ['/casos-de-exito', 'Casos'],
+  ['/nosotros', 'Nosotros'],
+  ['/recursos', 'Recursos'],
+];
 
 const isTouch = typeof window !== 'undefined' && matchMedia('(pointer: coarse)').matches;
 
@@ -27,7 +36,7 @@ export function Nav() {
           crystal={scrolled && !isTouch}
         >
           <div className="nav-pill-content">
-            <a href="#top" className="nav-brand" aria-label="Sodium Software · inicio">
+            <a href="/" className="nav-brand" aria-label="Sodium Software · inicio">
               <Logo size={18} />
               <span className="nav-wordmark">
                 sodium<span className="nav-wordmark-light">/software</span>
@@ -35,13 +44,22 @@ export function Nav() {
             </a>
 
             <nav className="nav-links" aria-label="Principal">
-              <a href="#clientes">Clientes</a>
-              <a href="#capacidades">Capacidades</a>
-              <a href="#casos">Casos</a>
-              <a href="#proceso">Proceso</a>
-              <a href="#estudio">Estudio</a>
-              <a href="#faq">FAQ</a>
+              {LINKS.map(([href, label]) => (
+                <a key={href} href={href}>{label}</a>
+              ))}
             </nav>
+
+            <details className="nav-menu">
+              <summary aria-label="Menú">
+                <span className="nav-menu-icon" aria-hidden="true" />
+              </summary>
+              <nav className="nav-menu-panel" aria-label="Menú móvil">
+                {LINKS.map(([href, label]) => (
+                  <a key={href} href={href}>{label}</a>
+                ))}
+                <a href="/contacto">Contacto</a>
+              </nav>
+            </details>
 
             <a {...contact} className="nav-cta" aria-label="Iniciar proyecto por WhatsApp">
               <span>Iniciar proyecto</span>

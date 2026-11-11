@@ -38,4 +38,19 @@ function preloadHints(): Plugin {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), preloadHints()],
+  build: {
+    /* scripts/prerender.mjs reads it to preload each page's own chunk. */
+    manifest: true,
+    rolldownOptions: {
+      output: {
+        /* Shared components and content in one chunk, so a page needs the
+           entry, that chunk and its own small page chunk: few requests on
+           the critical path. three.js and the scene stay in their own lazy
+           chunk. */
+        codeSplitting: {
+          groups: [{ name: 'app', test: /src[\\/](components|content)[\\/](?!crystalScene)[\w.-]+\.tsx?$/ }],
+        },
+      },
+    },
+  },
 })

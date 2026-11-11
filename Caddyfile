@@ -59,8 +59,9 @@
 		zstd
 	}
 
-	# Real files only. There is no client-side routing (one page + anchors),
-	# so an unknown URL is a real 404, not a copy of the home page with a
+	# Real files only. Every page is prerendered to <path>/index.html (see
+	# scripts/prerender.mjs) and there is no client-side routing, so an
+	# unknown URL is a real 404, not a copy of the home page with a
 	# 200 (a "soft 404" for Google). robots.txt and sitemap.xml are files.
 	try_files {path} {path}.html {path}/index.html
 

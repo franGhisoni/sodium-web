@@ -1,4 +1,3 @@
-import './sections.css';
 
 const STEPS = [
   { n: '01', t: 'Entender', d: 'Nos metemos en la operación y hablamos con quienes hacen el trabajo todos los días.', dur: '48 h' },

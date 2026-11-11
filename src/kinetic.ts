@@ -1,5 +1,4 @@
 import { useLayoutEffect } from 'react';
-import './kinetic.css';
 
 /**
  * Kinetic typography, applied to the page's existing markup (DOM-level, like
