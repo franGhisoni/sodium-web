@@ -14,6 +14,19 @@ interface ClientItem {
   link?: string;
 }
 
+/* Intrinsic size of each logo file. The width/height attributes give the
+   browser the aspect ratio up front; CSS keeps width/height auto, so the
+   rendered size (max-width / max-height) doesn't change. */
+const LOGO_SIZE: Record<string, [number, number]> = {
+  '/clients/rutini.png': [313, 56],
+  '/clients/escorihuela.webp': [480, 252],
+  '/clients/fluxone.webp': [500, 90],
+  '/clients/appterix.png': [759, 204],
+  '/clients/concrete-charleston.svg': [320, 64],
+  '/clients/politica-del-sur.svg': [482, 95],
+  '/clients/pellegrinet.svg': [300, 64],
+};
+
 const CLIENTS: ClientItem[] = [
   {
     id: 'rutini',
@@ -123,6 +136,8 @@ export function Clientes() {
               <div key={`${c.id}-${i}`} className="client-strip-item">
                 <img
                   src={c.logo}
+                  width={LOGO_SIZE[c.logo]?.[0]}
+                  height={LOGO_SIZE[c.logo]?.[1]}
                   alt={`${c.name} logo`}
                   className={`client-strip-logo ${c.logoClass || ''}`}
                   loading="lazy"
@@ -145,6 +160,8 @@ export function Clientes() {
               <div className="client-card-logo-box">
                 <img
                   src={c.logo}
+                  width={LOGO_SIZE[c.logo]?.[0]}
+                  height={LOGO_SIZE[c.logo]?.[1]}
                   alt={`${c.name} logo`}
                   className={`client-card-logo ${c.logoClass || ''}`}
                   loading="lazy"
