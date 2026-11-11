@@ -2,10 +2,11 @@ import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 
 /**
- * The three.js scene lives in its own chunk (dynamic import in Crystal.tsx)
- * so the page paints before it loads. Without a hint the browser only
- * discovers that chunk once the main bundle has run, so this preloads it
- * from the HTML, and preloads the two fonts almost every word uses.
+ * Preloads the two fonts almost every word uses.
+ *
+ * The three.js scene (its own chunk, dynamic import in Crystal.tsx) is NOT
+ * preloaded: it only starts after the page has loaded, so fetching it early
+ * would just compete with the fonts, CSS and main bundle for bandwidth.
  */
 function preloadHints(): Plugin {
   return {
@@ -17,13 +18,6 @@ function preloadHints(): Plugin {
         if (!bundle) return
         const tags = []
         for (const out of Object.values(bundle)) {
-          if (out.type === 'chunk' && out.name === 'crystalScene') {
-            tags.push({
-              tag: 'link',
-              attrs: { rel: 'modulepreload', crossorigin: true, href: `/${out.fileName}` },
-              injectTo: 'head' as const,
-            })
-          }
           if (
             out.type === 'asset' &&
             /(inter-tight|jetbrains-mono)-normal-latin-[\w-]{8}\.woff2$/.test(out.fileName)

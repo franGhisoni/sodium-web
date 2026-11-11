@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { inViewNow } from './kinetic';
 
 /**
  * Scroll-reveal — blur/fade-up entrance for the page's key blocks.
@@ -8,8 +9,8 @@ import { useEffect } from 'react';
  * classes are removed on animationend so hover transforms defined elsewhere
  * (cards lift on :hover) are never fought by the reveal styles.
  */
+/* The hero copy animates from CSS on first paint (kinetic.css). */
 const SELECTORS = [
-  '.hero-copy',
   '.hero-detail-copy',
   '.hero-card',
   '.section-head',
@@ -27,7 +28,11 @@ export function useReveal() {
   useEffect(() => {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    const els = Array.from(document.querySelectorAll<HTMLElement>(SELECTORS));
+    /* Skip what is already on screen: it was painted from the prerendered
+       HTML, and hiding it now to fade it back in would read as a flicker. */
+    const els = Array.from(document.querySelectorAll<HTMLElement>(SELECTORS)).filter(
+      (el) => el.classList.contains('reveal') || !inViewNow(el),
+    );
     els.forEach((el) => el.classList.add('reveal'));
 
     const io = new IntersectionObserver(

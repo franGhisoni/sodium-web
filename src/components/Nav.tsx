@@ -43,7 +43,7 @@ export function Nav() {
               <a href="#faq">FAQ</a>
             </nav>
 
-            <a {...contact} className="nav-cta">
+            <a {...contact} className="nav-cta" aria-label="Iniciar proyecto por WhatsApp">
               <span>Iniciar proyecto</span>
               <span className="nav-cta-arrow" aria-hidden="true">↗</span>
             </a>
