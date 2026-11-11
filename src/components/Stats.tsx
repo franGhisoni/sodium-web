@@ -1,4 +1,3 @@
-import './sections.css';
 
 const STATS = [
   { num: '14', unit: 'proyectos', cap: 'en producción para clientes activos' },

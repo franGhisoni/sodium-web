@@ -1,0 +1,321 @@
+import type { ReactElement } from 'react';
+import type { Case } from '../content/casos';
+
+/* Width of each full-size capture; every one also has a 720px copy
+   (<name>-720.webp) so phones and the card grid download a smaller file. */
+const FULL_WIDTH: Record<string, number> = {
+  '/cases/zurgo.webp': 1120,
+  '/cases/impacto.webp': 1120,
+  '/cases/retail.webp': 1120,
+  '/cases/house24.webp': 1120,
+};
+
+/** Rendered width of the screenshot: grid card by default, full width on a case page. */
+const CARD_SIZES = '(max-width: 680px) calc(100vw - 48px), (max-width: 1080px) 46vw, 380px';
+const PAGE_SIZES = '(max-width: 1280px) calc(100vw - 48px), 1180px';
+
+/** Screenshot of a case, or its generative SVG when there is no capture. */
+export function CaseShot({ c, eager = false }: { c: Case; eager?: boolean }) {
+  if (c.img) {
+    const small = c.img.replace(/\.webp$/, '-720.webp');
+    return (
+      <img
+        src={c.img}
+        srcSet={`${small} 720w, ${c.img} ${FULL_WIDTH[c.img] ?? 1440}w`}
+        sizes={eager ? PAGE_SIZES : CARD_SIZES}
+        alt={`Captura de pantalla de ${c.name}`}
+        width={1440}
+        height={900}
+        loading={eager ? 'eager' : 'lazy'}
+        fetchPriority={eager ? 'high' : 'auto'}
+        decoding={eager ? 'auto' : 'async'}
+      />
+    );
+  }
+  const Shot = SHOTS[c.id];
+  return Shot ? <Shot /> : null;
+}
+
+/* ─── Generative SVG shots (one per case) ──────────────────────── */
+
+function ShotPeitho() {
+  return (
+    <svg viewBox="0 0 280 175" preserveAspectRatio="xMidYMid slice">
+      <rect width="280" height="175" fill="#f4ecd8" />
+      <text x="20" y="32" fontSize="9" fill="#5a3a1a" fontFamily="ui-monospace, monospace" letterSpacing="2">AGENTE COMERCIAL DE IA</text>
+      <text x="20" y="78" fontSize="28" fill="#1a1410" fontFamily="ui-sans-serif" fontWeight="600" letterSpacing="-1.2">El vendedor</text>
+      <text x="20" y="108" fontSize="28" fill="#1a1410" fontFamily="ui-sans-serif" fontWeight="600" letterSpacing="-1.2">que nunca duerme.</text>
+      <rect x="20" y="128" width="110" height="28" rx="14" fill="#1a1410" />
+      <text x="75" y="146" fontSize="10" fill="#f4ecd8" textAnchor="middle" fontFamily="ui-monospace, monospace" letterSpacing="1.5">AGENDAR DEMO →</text>
+    </svg>
+  );
+}
+
+function ShotPeithoEstates() {
+  const cols: Array<[string, number, Array<[string, string, number]>]> = [
+    ['NUEVO', 3, [['Sofia A.', 'Compra 3 amb · USD 180-220k', 94], ['Martin C.', 'Alquiler temp. · Palermo', 67]]],
+    ['CALIFICADO', 3, [['Diego F.', 'Inversión en pozo · USD 120k', 76], ['Carolina R.', 'Venta + recompra', 82]]],
+    ['VISITA', 1, [['Valentina P.', 'Primer hogar · Nuñez', 89]]],
+    ['OFERTA', 1, [['Hernan S.', 'Oferta por PH · USD 165k', 96]]],
+  ];
+  return (
+    <svg viewBox="0 0 280 175" preserveAspectRatio="xMidYMid slice">
+      <rect width="280" height="175" fill="#f8fafd" />
+      <text x="14" y="19" fontSize="9" fill="#0f1729" fontFamily="ui-sans-serif" fontWeight="700">Peitho <tspan fill="#2563eb">Real Estate</tspan></text>
+      <text x="14" y="31" fontSize="6.5" fill="#64748b" fontFamily="ui-monospace, monospace" letterSpacing="1">CRM + AGENTE CONVERSACIONAL · PIPELINE</text>
+      {cols.map(([title, count, cards], ci) => (
+        <g key={ci}>
+          <text x={14 + ci * 66} y="48" fontSize="6" fill="#64748b" fontFamily="ui-monospace, monospace" letterSpacing="1">{title}</text>
+          <circle cx={14 + ci * 66 + 48} cy="45.5" r="5" fill="#e3ebfa" />
+          <text x={14 + ci * 66 + 48} y="48" fontSize="6" fill="#2563eb" textAnchor="middle" fontFamily="ui-sans-serif" fontWeight="700">{count}</text>
+          {cards.map(([name, det, score], i) => (
+            <g key={i}>
+              <rect x={14 + ci * 66} y={56 + i * 52} width="58" height="46" rx="5" fill="#ffffff" stroke="#e2e8f0" strokeWidth="0.8" />
+              <text x={19 + ci * 66} y={68 + i * 52} fontSize="6.5" fill="#0f1729" fontFamily="ui-sans-serif" fontWeight="600">{name}</text>
+              <rect x={14 + ci * 66 + 42} y={61 + i * 52} width="12" height="8" rx="4" fill="#2563eb" />
+              <text x={14 + ci * 66 + 48} y={67.2 + i * 52} fontSize="5" fill="#ffffff" textAnchor="middle" fontFamily="ui-sans-serif" fontWeight="700">{score}</text>
+              <text x={19 + ci * 66} y={78 + i * 52} fontSize="4.6" fill="#64748b" fontFamily="ui-sans-serif">{det}</text>
+              <rect x={19 + ci * 66} y={86 + i * 52} width="16" height="7" rx="3.5" fill="#eff4fd" />
+              <text x={27 + ci * 66} y={91.4 + i * 52} fontSize="4.2" fill="#2563eb" textAnchor="middle" fontFamily="ui-sans-serif" fontWeight="600">IA</text>
+              <text x={40 + ci * 66} y={91.4 + i * 52} fontSize="4.2" fill="#94a3b8" fontFamily="ui-sans-serif">Avanzar →</text>
+            </g>
+          ))}
+        </g>
+      ))}
+      <text x="14" y="168" fontSize="6" fill="#94a3b8" fontFamily="ui-monospace, monospace" letterSpacing="0.5">SIGUIENTE MEJOR ACCIÓN · REACTIVACIÓN AUTOMÁTICA</text>
+    </svg>
+  );
+}
+
+function ShotFlux() {
+  return (
+    <svg viewBox="0 0 280 175" preserveAspectRatio="xMidYMid slice">
+      <rect width="280" height="175" fill="#0d1117" />
+      <text x="14" y="18" fontSize="9" fill="#f0f6fc" fontFamily="ui-sans-serif" fontWeight="600" letterSpacing="-0.3">MetaAds <tspan fill="#7c8cff">Detalle</tspan></text>
+      <text x="14" y="32" fontSize="7" fill="#8b949e" fontFamily="ui-monospace, monospace">Marca Test · Mensual · Tienda</text>
+      <defs>
+        <linearGradient id="fluxGr" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="#7c8cff" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#7c8cff" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d="M20,148 L40,124 L60,134 L80,100 L100,116 L120,72 L140,90 L160,42 L180,68 L200,30 L220,52 L240,32 L260,22 L260,160 L20,160 Z" fill="url(#fluxGr)" />
+      <path d="M20,148 L40,124 L60,134 L80,100 L100,116 L120,72 L140,90 L160,42 L180,68 L200,30 L220,52 L240,32 L260,22" fill="none" stroke="#7c8cff" strokeWidth="1.2" />
+      {[[40, 124], [80, 100], [120, 72], [160, 42], [200, 30], [240, 32], [260, 22]].map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r="1.8" fill="#f0f6fc" />
+      ))}
+      <rect x="156" y="44" width="78" height="38" rx="3" fill="#161b22" stroke="#7c8cff" strokeWidth="0.5" />
+      <text x="162" y="56" fontSize="7" fill="#f0f6fc" fontFamily="ui-monospace, monospace" fontWeight="600">julio 2025</text>
+      <text x="162" y="66" fontSize="6" fill="#c9d1d9" fontFamily="ui-monospace, monospace">Inversión $1.23M</text>
+      <text x="162" y="74" fontSize="6" fill="#c9d1d9" fontFamily="ui-monospace, monospace">CTR 1.92% · CPC $169</text>
+    </svg>
+  );
+}
+
+function ShotRosaura() {
+  return (
+    <svg viewBox="0 0 280 175" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <linearGradient id="rosaGr" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="#3a1a14" />
+          <stop offset="100%" stopColor="#7a3520" />
+        </linearGradient>
+      </defs>
+      <rect width="280" height="175" fill="url(#rosaGr)" />
+      <text x="140" y="86" fontSize="42" fill="#f4d49a" fontFamily="ui-serif, Georgia" fontStyle="italic" textAnchor="middle" letterSpacing="-2">Rosaura</text>
+      <line x1="100" y1="100" x2="180" y2="100" stroke="#f4d49a" strokeOpacity="0.5" strokeWidth="0.5" />
+      <text x="140" y="118" fontSize="7" fill="#f4d49a" fillOpacity="0.85" textAnchor="middle" fontFamily="ui-monospace, monospace" letterSpacing="3">ESCORIHUELA GASCÓN · MENDOZA</text>
+      <rect x="100" y="134" width="80" height="22" rx="11" fill="none" stroke="#f4d49a" strokeOpacity="0.7" strokeWidth="0.5" />
+      <text x="140" y="148" fontSize="8" fill="#f4d49a" textAnchor="middle" fontFamily="ui-monospace, monospace" letterSpacing="2">RESERVAR</text>
+    </svg>
+  );
+}
+
+function ShotMetron() {
+  return (
+    <svg viewBox="0 0 280 175" preserveAspectRatio="xMidYMid slice">
+      <rect width="280" height="175" fill="#0a1322" />
+      <text x="14" y="20" fontSize="9" fill="#f4f8fc" fontFamily="ui-sans-serif" fontWeight="600">Metron · Finanzas personales</text>
+      <text x="14" y="34" fontSize="7" fill="#94a8bd" fontFamily="ui-monospace, monospace" letterSpacing="0.5">Saldo · noviembre</text>
+      <text x="14" y="62" fontSize="24" fill="#f4f8fc" fontFamily="ui-sans-serif" fontWeight="500" letterSpacing="-1">$ 1.284.430</text>
+      <text x="130" y="62" fontSize="10" fill="#7fc89a" fontFamily="ui-monospace, monospace">+12.4%</text>
+      {[
+        ['Vivienda', 78, '#7faacf'],
+        ['Comida', 52, '#7fc89a'],
+        ['Transporte', 34, '#cf9f7f'],
+        ['Suscripciones', 20, '#cf7f9f'],
+      ].map(([n, w, c], i) => (
+        <g key={i}>
+          <text x="14" y={92 + i * 18} fontSize="8" fill="#cfdce9" fontFamily="ui-monospace, monospace">{n}</text>
+          <rect x="100" y={86 + i * 18} width="160" height="6" rx="3" fill="#1a3148" />
+          <rect x="100" y={86 + i * 18} width={(w as number) * 1.6} height="6" rx="3" fill={c as string} />
+          <text x="266" y={92 + i * 18} fontSize="6" fill="#94a8bd" fontFamily="ui-monospace, monospace" textAnchor="end">{w}%</text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function ShotInstituto() {
+  const rows: Array<[string, string, string]> = [
+    ['09:00', 'Paciente A.', 'Consultorio 1'],
+    ['09:30', 'Paciente B.', 'Consultorio 2'],
+    ['10:00', 'Paciente C.', 'Consultorio 1'],
+    ['10:30', 'Paciente D.', 'Consultorio 2'],
+  ];
+  return (
+    <svg viewBox="0 0 280 175" preserveAspectRatio="xMidYMid slice">
+      <rect width="280" height="175" fill="#f6f9f9" />
+      <rect x="0" y="0" width="58" height="175" fill="#0f3d3e" />
+      <text x="10" y="20" fontSize="8" fill="#e6f2f1" fontFamily="ui-sans-serif" fontWeight="700">Instituto</text>
+      {['Agenda', 'Pacientes', 'Estudios', 'Config.'].map((n, i) => (
+        <text key={i} x="10" y={44 + i * 16} fontSize="7" fill={i === 0 ? '#ffffff' : '#8fb8b6'} fontFamily="ui-sans-serif">{n}</text>
+      ))}
+      <text x="72" y="22" fontSize="11" fill="#0f2a2b" fontFamily="ui-sans-serif" fontWeight="600">Agenda del día</text>
+      <text x="72" y="34" fontSize="6.5" fill="#5b7a79" fontFamily="ui-monospace, monospace" letterSpacing="1">DATOS FICTICIOS · DEMO</text>
+      {rows.map(([h, n, c], i) => (
+        <g key={i}>
+          <rect x="72" y={46 + i * 28} width="196" height="22" rx="4" fill="#ffffff" stroke="#d5e3e2" strokeWidth="0.8" />
+          <rect x="72" y={46 + i * 28} width="3" height="22" rx="1.5" fill={i % 2 ? '#2f9e9a' : '#0f3d3e'} />
+          <text x="82" y={60 + i * 28} fontSize="7" fill="#0f2a2b" fontFamily="ui-monospace, monospace" fontWeight="600">{h}</text>
+          <text x="118" y={60 + i * 28} fontSize="7" fill="#0f2a2b" fontFamily="ui-sans-serif">{n}</text>
+          <text x="262" y={60 + i * 28} fontSize="6" fill="#5b7a79" textAnchor="end" fontFamily="ui-sans-serif">{c}</text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function ShotLakshmi() {
+  return (
+    <svg viewBox="0 0 280 175" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="lakGlow" cx="0.5" cy="0.5" r="0.6">
+          <stop offset="0%" stopColor="#f2c96b" stopOpacity="0.28" />
+          <stop offset="100%" stopColor="#f2c96b" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id="lakGold" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stopColor="#f7e2a3" />
+          <stop offset="45%" stopColor="#d9a93f" />
+          <stop offset="100%" stopColor="#8a5f17" />
+        </linearGradient>
+      </defs>
+      <rect width="280" height="175" fill="#050505" />
+      <rect width="280" height="175" fill="url(#lakGlow)" />
+      {Array.from({ length: 28 }, (_, i) => (
+        <circle key={i} cx={(i * 97) % 280} cy={(i * 53) % 175} r={0.6 + (i % 3) * 0.4} fill="#f2e8d5" fillOpacity={0.25 + (i % 4) * 0.12} />
+      ))}
+      <g transform="rotate(-8 140 88)">
+        <rect x="50" y="52" width="180" height="76" rx="6" fill="url(#lakGold)" />
+        <rect x="55" y="57" width="170" height="66" rx="4" fill="none" stroke="#fff3c9" strokeOpacity="0.6" strokeWidth="0.6" />
+        <line x1="182" y1="54" x2="182" y2="126" stroke="#3b2a08" strokeOpacity="0.65" strokeWidth="1" strokeDasharray="2 3" />
+        <text x="66" y="80" fontSize="8" fill="#3b2a08" fontFamily="ui-serif, Georgia" letterSpacing="3">LAKSHMI</text>
+        <text x="66" y="104" fontSize="16" fill="#2a1d05" fontFamily="ui-serif, Georgia" fontStyle="italic">Volvé a vos</text>
+        <rect x="192" y="76" width="26" height="26" rx="2" fill="#2a1d05" fillOpacity="0.85" />
+        <rect x="196" y="80" width="6" height="6" fill="#f7e2a3" />
+        <rect x="208" y="80" width="6" height="6" fill="#f7e2a3" />
+        <rect x="196" y="92" width="6" height="6" fill="#f7e2a3" />
+        <rect x="206" y="90" width="4" height="4" fill="#f7e2a3" />
+      </g>
+      <text x="140" y="158" fontSize="6.5" fill="#d9d2c4" fillOpacity="0.7" textAnchor="middle" fontFamily="ui-monospace, monospace" letterSpacing="2.5">GOLDEN TICKET · 3D EN TIEMPO REAL</text>
+    </svg>
+  );
+}
+
+function ShotZurgo() {
+  return (
+    <svg viewBox="0 0 280 175" preserveAspectRatio="xMidYMid slice">
+      <rect width="280" height="175" fill="#0b1220" />
+      <g stroke="#1c2a44" strokeWidth="6" fill="none" strokeLinecap="round">
+        <path d="M-10 120 L90 100 L170 130 L290 90" />
+        <path d="M60 -10 L80 90 L70 190" />
+        <path d="M170 -10 L170 130 L200 190" />
+      </g>
+      <g stroke="#162238" strokeWidth="2" fill="none">
+        <path d="M-10 60 L290 40" />
+        <path d="M120 -10 L130 190" />
+        <path d="M230 -10 L240 190" />
+      </g>
+      <path d="M80 90 L90 100 L170 130 L215 112" fill="none" stroke="#7aa2ff" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="1 5" />
+      <circle cx="80" cy="90" r="5" fill="#7aa2ff" />
+      <circle cx="80" cy="90" r="10" fill="#7aa2ff" fillOpacity="0.2" />
+      <circle cx="215" cy="112" r="5" fill="#7fc89a" />
+      {[[120, 118], [185, 70], [40, 140]].map(([x, y], i) => (
+        <g key={i}>
+          <rect x={x - 5} y={y - 3} width="10" height="6" rx="2" fill="#f4f8fc" fillOpacity="0.85" />
+        </g>
+      ))}
+      <g transform="translate(150 118)">
+        <rect x="-6" y="-4" width="12" height="8" rx="2.5" fill="#f5c451" />
+      </g>
+      <rect x="170" y="14" width="96" height="48" rx="6" fill="#0f1a2e" stroke="#7aa2ff" strokeOpacity="0.35" />
+      <rect x="178" y="22" width="62" height="12" rx="4" fill="#1d2d4a" />
+      <text x="184" y="31" fontSize="6.5" fill="#cfdce9" fontFamily="ui-sans-serif">Un remis a Hospital Evita</text>
+      <rect x="196" y="38" width="62" height="16" rx="4" fill="#1f4d3a" />
+      <text x="202" y="48" fontSize="6.5" fill="#bfe9cf" fontFamily="ui-sans-serif">Cotizado · MP ✓</text>
+      <text x="14" y="22" fontSize="11" fill="#f4f8fc" fontFamily="ui-serif, Georgia" letterSpacing="3">ZUR GO</text>
+      <text x="14" y="34" fontSize="6.5" fill="#94a8bd" fontFamily="ui-monospace, monospace" letterSpacing="1.5">3 AUTOS · 1 VIAJE EN CURSO</text>
+    </svg>
+  );
+}
+
+function ShotEterna() {
+  return (
+    <svg viewBox="0 0 280 175" preserveAspectRatio="xMidYMid slice">
+      <rect width="280" height="175" fill="#f6efe9" />
+      <text x="20" y="44" fontSize="26" fill="#3a2a26" fontFamily="ui-serif, Georgia" letterSpacing="1">Eterna</text>
+      <text x="20" y="60" fontSize="6.5" fill="#8a6f66" fontFamily="ui-monospace, monospace" letterSpacing="1.5">ESTÉTICA MÉDICA · LOMAS DE ZAMORA</text>
+      <rect x="20" y="78" width="136" height="24" rx="10" fill="#ffffff" stroke="#e6d8cf" />
+      <text x="30" y="93" fontSize="7.5" fill="#3a2a26" fontFamily="ui-sans-serif">¿Tienen turno para el jueves?</text>
+      <rect x="92" y="110" width="168" height="24" rx="10" fill="#3a2a26" />
+      <text x="102" y="125" fontSize="7.5" fill="#f6efe9" fontFamily="ui-sans-serif">Sí, a las 16 h. ¿Te reservo el lugar?</text>
+      <rect x="196" y="142" width="64" height="18" rx="9" fill="#c98f7b" />
+      <text x="228" y="154" fontSize="7" fill="#ffffff" textAnchor="middle" fontFamily="ui-sans-serif" fontWeight="600">Pagar seña</text>
+    </svg>
+  );
+}
+
+function ShotZellgo() {
+  return (
+    <svg viewBox="0 0 280 175" preserveAspectRatio="xMidYMid slice">
+      <rect width="280" height="175" fill="#0a0a14" />
+      <rect x="0" y="0" width="60" height="175" fill="#12121a" />
+      <text x="10" y="18" fontSize="8" fill="#f4f8fc" fontFamily="ui-sans-serif" fontWeight="600">Zellgo</text>
+      {['Clientes', 'Leads', 'Pagos', 'Membresías', 'Negocio', 'Gestión'].map((n, i) => (
+        <text key={i} x="10" y={38 + i * 16} fontSize="7" fill={i === 0 ? '#f4f8fc' : '#94a8bd'} fontFamily="ui-sans-serif">{n}</text>
+      ))}
+      <g fontFamily="ui-monospace, monospace" fontSize="7" fill="#cfdce9">
+        <text x="72" y="22" fill="#f4f8fc" fontSize="11" fontWeight="600">Clientes</text>
+        <text x="72" y="36" fill="#94a8bd" fontSize="7">60.450 registros</text>
+        <text x="72" y="58" fill="#66798e" letterSpacing="0.5">ID · APELLIDO · NOMBRE · EMAIL</text>
+        {[
+          ['4791', 'VALDEZ', 'SAMUEL'],
+          ['29', 'MARTIN', 'MARIA'],
+          ['34', 'ROJAS', 'JAVIER'],
+          ['19256', 'OVIEDO', 'GRACIELA'],
+          ['50', 'CAU', 'ANALIA'],
+        ].map((r, i) => (
+          <g key={i}>
+            <line x1="72" x2="270" y1={66 + i * 16} y2={66 + i * 16} stroke="#f4f8fc" strokeOpacity="0.06" />
+            <text x="72" y={78 + i * 16}>{r[0]}</text>
+            <text x="112" y={78 + i * 16}>{r[1]}</text>
+            <text x="180" y={78 + i * 16}>{r[2]}</text>
+          </g>
+        ))}
+      </g>
+    </svg>
+  );
+}
+
+const SHOTS: Record<string, () => ReactElement> = {
+  'peitho': ShotPeitho,
+  'peitho-estates': ShotPeithoEstates,
+  'flux': ShotFlux,
+  'rosaura': ShotRosaura,
+  'metron': ShotMetron,
+  'instituto-ghisoni': ShotInstituto,
+  'lakshmi': ShotLakshmi,
+  'zurgo': ShotZurgo,
+  'eterna': ShotEterna,
+  'zellgo': ShotZellgo,
+};

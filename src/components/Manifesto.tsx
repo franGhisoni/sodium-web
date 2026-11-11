@@ -1,7 +1,6 @@
 import { Logo } from './Logo';
 import { Glass } from './Glass';
 import { SceneAnchor } from './SceneAnchor';
-import './sections.css';
 
 export function Manifesto() {
   return (

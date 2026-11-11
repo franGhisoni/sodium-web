@@ -38,11 +38,12 @@ Habrá patio gastronómico, espectáculos musicales y servicios de colectivo ent
 
 #ImpactoCastex #EduardoCastex #LaPampa #ExpoVivero2026 #Toay #JardínBotánico`;
 
-export function CasoImpacto() {
+export function CasoImpacto({ level = 4 }: { level?: 2 | 3 | 4 }) {
+  const H = `h${level}` as 'h2' | 'h3' | 'h4';
   return (
     <div className="caso-detail">
       <section className="caso-block">
-        <h4 className="caso-title">Una redacción que puede usar todo el equipo</h4>
+        <H className="caso-title">Una redacción que puede usar todo el equipo</H>
         <p className="caso-lead">
           El diario se ve como un medio profesional para quien lo mira, y el panel también se
           trabaja de punta a punta para quien redacta con lector de pantalla o por voz.
@@ -58,7 +59,7 @@ export function CasoImpacto() {
       </section>
 
       <section className="caso-block">
-        <h4 className="caso-title">Integrado con un motor de noticias</h4>
+        <H className="caso-title">Integrado con un motor de noticias</H>
         <p className="caso-lead">
           El diario recibe notas de un motor de noticias con IA como a un redactor más,
           con firma propia y dentro de las mismas reglas que el resto del equipo.
@@ -75,10 +76,10 @@ export function CasoImpacto() {
       </section>
 
       <section className="caso-block">
-        <h4 className="caso-title">De la nota a la placa y el copy</h4>
+        <H className="caso-title">De la nota a la placa y el copy</H>
         <p className="caso-lead">
           Muestra real, generada por el sistema a partir de{' '}
-          <a href={NOTA_URL} target="_blank" rel="noopener noreferrer">esta nota del diario ↗</a>.
+          <a className="text-link" href={NOTA_URL} target="_blank" rel="noopener noreferrer">esta nota del diario ↗</a>.
           La IA escribe el titular de la placa, elige qué resaltar y redacta un texto para cada red.
         </p>
         <ul className="caso-cards">

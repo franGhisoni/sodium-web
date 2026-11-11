@@ -1,5 +1,4 @@
 import { Logo } from './Logo';
-import './sections.css';
 
 export function Footer() {
   return (
@@ -12,19 +11,19 @@ export function Footer() {
           </div>
           <div className="footer-cols">
             <div>
-              <p className="footer-col-title">Estudio</p>
-              <a href="#estudio">Manifiesto</a>
-              <a href="#faq">FAQ</a>
-              <a href="#casos">Casos</a>
-              <a href="/privacidad/">Privacidad</a>
+              <p className="footer-col-title">Servicios</p>
+              <a href="/software-factory">Software factory</a>
+              <a href="/software-a-medida">Software a medida</a>
+              <a href="/desarrollo-ia">Desarrollo de IA</a>
+              <a href="/automatizacion">Automatización</a>
             </div>
             <div>
-              <p className="footer-col-title">Capacidades</p>
-              <a href="#capacidades">Diagnóstico</a>
-              <a href="#capacidades">Flujos asistidos</a>
-              <a href="#capacidades">Agentes operativos</a>
-              <a href="#capacidades">Integraciones</a>
-              <a href="#capacidades">Adopción</a>
+              <p className="footer-col-title">Sodium</p>
+              <a href="/nosotros">Nosotros</a>
+              <a href="/casos-de-exito">Casos de éxito</a>
+              <a href="/recursos">Recursos</a>
+              <a href="/contacto">Contacto</a>
+              <a href="/privacidad/">Privacidad</a>
             </div>
             <div>
               <p className="footer-col-title">Contacto</p>

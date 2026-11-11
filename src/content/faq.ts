@@ -1,6 +1,14 @@
 /** FAQ shown on the home page; the FAQPage structured data (src/seo.ts) reads the same list. */
 export const QUESTIONS = [
   {
+    question: '¿Qué es Sodium?',
+    answer: 'Sodium Software es una software factory argentina con base en Buenos Aires. Desarrollamos software a medida para empresas e integramos inteligencia artificial y automatización en sus procesos.',
+  },
+  {
+    question: '¿Qué servicios ofrece Sodium?',
+    answer: 'Desarrollo de software a medida (sistemas de gestión, plataformas, aplicaciones e integraciones), desarrollo de inteligencia artificial para empresas (agentes, asistentes y búsqueda sobre el conocimiento interno) y automatización de procesos con integraciones por API. Podemos trabajar como equipo completo o integrados a tu equipo.',
+  },
+  {
     question: '¿Con qué tipo de proyectos trabajan?',
     answer: 'Trabajamos con empresas y proyectos que quieren aplicar IA en una operación concreta: ventas, atención, análisis, conocimiento interno o tareas repetitivas. Si la oportunidad todavía no está clara, empezamos por mapear y priorizar.',
   },
