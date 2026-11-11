@@ -44,8 +44,19 @@
 	@assets path /assets/*
 	header @assets Cache-Control "public, max-age=31536000, immutable"
 
-	# Images and other public files keep their names: a day, then revalidate.
-	@static path /cases/* /clients/* *.svg *.css *.png *.jpg *.webp *.webmanifest
+	# Case captures and client logos keep their names but rarely change: 30
+	# days. (To replace one, give the new file a new name.)
+	@images {
+		path /cases/* /clients/*
+	}
+	header @images Cache-Control "public, max-age=2592000, stale-while-revalidate=604800"
+
+	# Other public files (favicons, OG image, manifest): a day, then revalidate.
+	# /assets/* is excluded so its immutable header above is not overwritten.
+	@static {
+		path *.svg *.css *.png *.jpg *.webp *.webmanifest
+		not path /assets/* /cases/* /clients/*
+	}
 	header @static Cache-Control "public, max-age=86400, stale-while-revalidate=604800"
 
 	# Crawl files: short cache so sitemap updates are picked up quickly.

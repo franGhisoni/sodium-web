@@ -18,7 +18,7 @@ interface ClientItem {
    rendered size (max-width / max-height) doesn't change. */
 const LOGO_SIZE: Record<string, [number, number]> = {
   '/clients/rutini.png': [313, 56],
-  '/clients/escorihuela.webp': [480, 252],
+  '/clients/escorihuela.webp': [360, 189],
   '/clients/fluxone.webp': [500, 90],
   '/clients/appterix.png': [759, 204],
   '/clients/concrete-charleston.svg': [320, 64],
