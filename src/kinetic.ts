@@ -5,7 +5,7 @@ import './kinetic.css';
  * Kinetic typography, applied to the page's existing markup (DOM-level, like
  * useReveal, so the section components stay plain JSX):
  *
- *  - Headings (.hero-title, .section-title, .cta-title) are split into words
+ *  - Headings (.section-title, .cta-title) are split into words
  *    that pull focus (blur → sharp) while dollying in, staggered, once they
  *    scroll into view.
  *  - The manifesto text lights up word by word as you scroll through it.
@@ -15,8 +15,16 @@ import './kinetic.css';
  * Everything is skipped under prefers-reduced-motion.
  */
 
-const HEADINGS = '.hero-title, .section-title, .cta-title';
+/* The hero headline animates from CSS (kinetic.css), not from here. */
+const HEADINGS = '.section-title, .cta-title';
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+
+/** Already on screen when the script runs (e.g. a reload mid-page): the text
+ *  was painted from the HTML, so hiding it to animate it again would flash. */
+export const inViewNow = (el: Element) => {
+  const r = el.getBoundingClientRect();
+  return r.bottom > 0 && r.top < innerHeight;
+};
 
 /** Wrap every word of every text node under `root` in `wrap(word)` elements. */
 function wrapWords(root: HTMLElement, make: (word: string) => HTMLElement) {
@@ -53,6 +61,7 @@ function splitHeadings(): Array<() => void> {
   );
 
   for (const el of els) {
+    if (!el.dataset.kinetic && inViewNow(el)) continue;
     if (!el.dataset.kinetic) {
       el.dataset.kinetic = '1';
       el.setAttribute('aria-label', (el.textContent ?? '').replace(/\s+/g, ' ').trim());
@@ -92,6 +101,9 @@ function scrubText(): Array<() => void> {
   }
   const words = Array.from(el.querySelectorAll<HTMLElement>('.sw'));
   const n = words.length;
+  /* Last value written per word: style writes only on change, so scrolling
+     elsewhere on the page doesn't restyle every word each frame. */
+  const last: string[] = new Array(n).fill('');
   let raf = 0;
 
   const update = () => {
@@ -101,18 +113,35 @@ function scrubText(): Array<() => void> {
     const p = clamp((vh * 0.82 - r.top) / (r.height + vh * 0.22), 0, 1);
     for (let i = 0; i < n; i++) {
       const o = clamp((p * (n + 3) - i) / 3, 0, 1);
-      words[i].style.setProperty('--o', (0.16 + 0.84 * o).toFixed(3));
+      const v = (0.16 + 0.84 * o).toFixed(3);
+      if (v === last[i]) continue;
+      last[i] = v;
+      words[i].style.setProperty('--o', v);
     }
   };
+  let active = false;
   const request = () => {
-    if (!raf) raf = requestAnimationFrame(update);
+    if (active && !raf) raf = requestAnimationFrame(update);
   };
+  const io = new IntersectionObserver(
+    ([entry]) => {
+      active = entry.isIntersecting;
+      if (active) {
+        addEventListener('scroll', request, { passive: true });
+        request();
+      } else {
+        removeEventListener('scroll', request);
+      }
+    },
+    { rootMargin: '160px 0px' },
+  );
+  io.observe(el);
   update();
-  addEventListener('scroll', request, { passive: true });
   addEventListener('resize', request);
 
   return [
     () => {
+      io.disconnect();
       cancelAnimationFrame(raf);
       removeEventListener('scroll', request);
       removeEventListener('resize', request);
@@ -169,13 +198,23 @@ function countUps(): Array<() => void> {
   ];
 }
 
-/** Lifts the hero copy as it scrolls away (single CSS variable, one rAF). */
+/**
+ * Lifts the hero copy as it scrolls away (single CSS variable, one rAF).
+ * Skipped on touch devices, where a main-thread scroll transform fights the
+ * compositor thread and causes the hero text to jitter.
+ */
 function heroParallax(): Array<() => void> {
-  const root = document.documentElement;
+  if (matchMedia('(pointer: coarse)').matches) return [];
+  const root = document.querySelector<HTMLElement>('.hero-copy');
+  if (!root) return [];
   let raf = 0;
+  let last = '';
   const update = () => {
     raf = 0;
-    root.style.setProperty('--hs', clamp(window.scrollY / (innerHeight * 0.8), 0, 1).toFixed(3));
+    const v = clamp(window.scrollY / (innerHeight * 0.8), 0, 1).toFixed(3);
+    if (v === last) return;
+    last = v;
+    root.style.setProperty('--hs', v);
   };
   const request = () => {
     if (!raf) raf = requestAnimationFrame(update);

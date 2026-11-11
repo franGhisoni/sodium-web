@@ -7,20 +7,19 @@ export function Footer() {
       <div className="section-inner">
         <div className="footer-top">
           <div className="footer-mark">
-            <Logo size={48} />
-            <p>IA aplicada a los flujos de trabajo que realmente mueven el negocio.</p>
+            <Logo size={48} title="Sodium Software" />
+            <p>Software factory en Buenos Aires: software a medida e IA aplicada a los flujos de trabajo que realmente mueven el negocio.</p>
           </div>
           <div className="footer-cols">
             <div>
-              <h5>Estudio</h5>
+              <p className="footer-col-title">Estudio</p>
               <a href="#estudio">Manifiesto</a>
               <a href="#faq">FAQ</a>
-              <a href="#">Equipo</a>
-              <a href="#">Notas</a>
-              <a href="#">GitHub</a>
+              <a href="#casos">Casos</a>
+              <a href="/privacidad/">Privacidad</a>
             </div>
             <div>
-              <h5>Capacidades</h5>
+              <p className="footer-col-title">Capacidades</p>
               <a href="#capacidades">Diagnóstico</a>
               <a href="#capacidades">Flujos asistidos</a>
               <a href="#capacidades">Agentes operativos</a>
@@ -28,8 +27,8 @@ export function Footer() {
               <a href="#capacidades">Adopción</a>
             </div>
             <div>
-              <h5>Contacto</h5>
-              <a href="mailto:softwaresodium@gmail.com">softwaresodium@gmail.com</a>
+              <p className="footer-col-title">Contacto</p>
+              <a href="mailto:contacto@sodium.com.ar">contacto@sodium.com.ar</a>
               <a href="https://wa.me/5491125918111" target="_blank" rel="noopener noreferrer">
                 WhatsApp · 11 2591 8111
               </a>

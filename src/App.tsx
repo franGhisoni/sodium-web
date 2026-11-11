@@ -9,6 +9,7 @@ import { Marquee } from './components/Marquee';
 import { Proceso } from './components/Proceso';
 import { Stats } from './components/Stats';
 import { Manifesto } from './components/Manifesto';
+import { PorQue } from './components/PorQue';
 import { Faq } from './components/Faq';
 import { CTA } from './components/CTA';
 import { Footer } from './components/Footer';
@@ -33,6 +34,7 @@ function App() {
         <Proceso />
         <Stats />
         <Manifesto />
+        <PorQue />
         <Faq />
         <CTA />
       </main>

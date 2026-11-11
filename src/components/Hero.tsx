@@ -1,42 +1,81 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import type React from 'react';
 import { Glass } from './Glass';
+import { SceneAnchor } from './SceneAnchor';
+import { useContactLink } from '../contact';
+import { afterLoadAndIdle, hasHardwareWebGL } from '../webgl';
 import './Hero.css';
 
+/* three.js + react-three-fiber live in their own chunk, loaded on demand. */
 const HeroCrystal = lazy(() => import('./HeroCrystal'));
 
-const canWebGL = (() => {
-  try {
-    return !!document.createElement('canvas').getContext('webgl');
-  } catch {
-    return false;
-  }
-})();
-const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+/**
+ * The refractive cube over the hero cards. Decorative, so it only mounts
+ * after load, on wide screens with a real GPU and motion allowed; the
+ * prerendered HTML and crawlers never include it.
+ */
+function HeroCrystalSlot() {
+  const [on, setOn] = useState(false);
+  useEffect(
+    () =>
+      afterLoadAndIdle(() => {
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        if (!matchMedia('(min-width: 901px)').matches) return;
+        const params = new URLSearchParams(location.search);
+        if (params.has('nogl')) return;
+        /* `?gl` forces it on, to test on software renderers on purpose. */
+        if (params.has('gl') || hasHardwareWebGL()) setOn(true);
+      }),
+    [],
+  );
+  if (!on) return null;
+  return (
+    <Suspense fallback={null}>
+      <HeroCrystal />
+    </Suspense>
+  );
+}
+
+/** Splits a headline into word spans for the staggered CSS entrance. */
+function Words({ text, from }: { text: string; from: number }) {
+  return text.split(' ').map((word, i) => (
+    <span key={i}>
+      {i > 0 && ' '}
+      <span className="kw" style={{ '--i': from + i } as React.CSSProperties}>{word}</span>
+    </span>
+  ));
+}
 
 export function Hero() {
+  const contact = useContactLink();
   return (
     <section className="hero" id="top">
-      <div className="hero-inner container">
+      {/* First view: just the promise, two actions and the prism. */}
+      <div className="hero-fold container">
         <div className="hero-copy">
-          <span className="pill hero-pill">
-            <span className="pill-dot" />
-            IA APLICADA · SISTEMAS · ADOPCIÓN
-          </span>
-
-          <h1 className="hero-title display">
-            IA aplicada.
-            <br />
-            <span className="hero-title-accent">Impacto real.</span>
+          {/* The h1 names the company and what it does (the pill line) and
+              carries the headline. Headline words are server-rendered spans
+              animated by CSS, so the text is in the HTML and paints at once. */}
+          <h1 className="hero-heading">
+            <span className="pill hero-pill">
+              <span className="pill-dot" />
+              Sodium · Software a medida e IA
+            </span>{' '}
+            <span className="hero-title display">
+              <Words text="IA aplicada." from={0} />
+              <br />
+              <span className="hero-title-accent"><Words text="Impacto real." from={2} /></span>
+            </span>
           </h1>
 
           <p className="hero-sub">
-            Intervenimos los flujos de trabajo clave de tu empresa para acelerar
-            decisiones, ejecución y crecimiento. <span className="muted">No desarrollamos otra IA:
-            integramos lo mejor del mercado donde el cambio genera impacto real.</span>
+            Somos una software factory argentina: desarrollamos software a medida e
+            integramos inteligencia artificial en los flujos de trabajo clave de tu
+            empresa para acelerar decisiones, ejecución y crecimiento.
           </p>
 
           <div className="hero-actions">
-            <a href="#contacto" className="btn btn-primary">
+            <a {...contact} className="btn btn-primary">
               Iniciar proyecto
               <span className="btn-arrow" aria-hidden="true">→</span>
             </a>
@@ -45,7 +84,29 @@ export function Hero() {
               <span className="btn-arrow" aria-hidden="true">↘</span>
             </a>
           </div>
+        </div>
 
+        {/* Apex-up prism, rolled 5°: the beam rises from the lower left under
+            the copy and meets the near face at ~50° (no total internal
+            reflection at rest); the spectrum falls down-right towards the
+            content below. At 5° the light keeps entering the same face and
+            leaving by the same one across the whole pointer sweep. */}
+        <SceneAnchor kind="prism" className="hero-prism-anchor" rotation={5} beamAngle={-10} />
+        <SceneAnchor kind="prism" className="hero-prism-anchor--mobile" rotation={12} beamAngle={0} />
+
+        <a href="#hero-detalle" className="hero-scroll">
+          <span>Cómo trabajamos</span>
+          <span className="hero-scroll-line" aria-hidden="true" />
+        </a>
+      </div>
+
+      {/* Below the fold: positioning, principles and the workflow cards. */}
+      <div className="hero-detail container" id="hero-detalle">
+        <div className="hero-detail-copy">
+          <p className="hero-lead">
+            No desarrollamos otra IA: <span className="muted">integramos lo mejor del
+            mercado donde el cambio genera impacto real.</span>
+          </p>
           <dl className="hero-meta">
             <div>
               <dt>Enfoque</dt>
@@ -63,11 +124,7 @@ export function Hero() {
         </div>
 
         <div className="hero-stage">
-          {canWebGL && !reduced && (
-            <Suspense fallback={null}>
-              <HeroCrystal />
-            </Suspense>
-          )}
+          <HeroCrystalSlot />
           <HeroWorkflowCard />
           <HeroReviewCard />
           <HeroStackCard />
@@ -84,9 +141,9 @@ function HeroWorkflowCard() {
       <header className="hero-card-head">
         <div>
           <span className="hero-card-label">Flujo clave <span className="muted">/ comercial</span></span>
-          <h3 className="hero-card-title display">
+          <p className="hero-card-title display">
             Menos fricción. <br /><strong>Más capacidad.</strong>
-          </h3>
+          </p>
         </div>
         <span className="hero-card-tag">
           <span className="pill-dot" />

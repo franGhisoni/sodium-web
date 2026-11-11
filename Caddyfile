@@ -1,0 +1,76 @@
+# Railway (Railpack) serves the Vite build with Caddy. This replaces the
+# default template so hashed assets are cached for a year and the HTML is
+# always revalidated. Based on railpack's node/Caddyfile.template.
+{
+	admin off
+	persist_config off
+	auto_https off
+
+	log {
+		format json
+	}
+
+	servers {
+		trusted_proxies static private_ranges 100.0.0.0/8
+	}
+}
+
+:{$PORT:80} {
+	log {
+		format json
+	}
+
+	respond /health 200
+
+	# One canonical host: www (if it ever points here) goes to the apex.
+	@www host www.sodium.ar
+	redir @www https://sodium.ar{uri} permanent
+
+	header {
+		X-Content-Type-Options "nosniff"
+		-Server
+	}
+
+	root * /app/dist
+
+	# Vite hashes everything under /assets: safe to cache forever.
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+
+	# Images and other public files keep their names: a day, then revalidate.
+	@static path /cases/* /clients/* *.svg *.css *.png *.jpg *.webp *.webmanifest
+	header @static Cache-Control "public, max-age=86400, stale-while-revalidate=604800"
+
+	# Crawl files: short cache so sitemap updates are picked up quickly.
+	@crawl path /robots.txt /sitemap.xml
+	header @crawl Cache-Control "public, max-age=3600"
+
+	# HTML: always check with the server (ETag) so deploys show up at once.
+	@html path / *.html */
+	header @html Cache-Control "no-cache"
+
+	file_server {
+		hide .git
+		hide .env*
+	}
+
+	encode {
+		gzip
+		zstd
+	}
+
+	# Real files only. There is no client-side routing (one page + anchors),
+	# so an unknown URL is a real 404, not a copy of the home page with a
+	# 200 (a "soft 404" for Google). robots.txt and sitemap.xml are files.
+	try_files {path} {path}.html {path}/index.html
+
+	handle_errors {
+		@notfound expression {err.status_code} == 404
+		handle @notfound {
+			root * /app/dist
+			rewrite * /404.html
+			header Cache-Control "no-cache"
+			file_server
+		}
+	}
+}

@@ -1,9 +1,11 @@
 interface LogoProps {
   size?: number;
   className?: string;
+  /** Accessible name; without it the mark is decorative (next to the name). */
+  title?: string;
 }
 
-export function Logo({ size = 24, className }: LogoProps) {
+export function Logo({ size = 24, className, title }: LogoProps) {
   return (
     <svg
       width={size}
@@ -11,7 +13,7 @@ export function Logo({ size = 24, className }: LogoProps) {
       viewBox="0 0 101 115"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      aria-label="Sodium Software"
+      {...(title ? { role: 'img', 'aria-label': title } : { 'aria-hidden': true })}
       className={className}
     >
       <path
