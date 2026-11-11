@@ -1,0 +1,6 @@
+# Sodium Software · https://sodium.ar
+# Everything is crawlable: pages, CSS, JavaScript, images and fonts.
+User-agent: *
+Allow: /
+
+Sitemap: https://sodium.ar/sitemap.xml
