@@ -19,7 +19,17 @@ const SITE = 'https://sodium.ar'
 
 const { render, ROUTES, structuredDataTag } = await import(pathToFileURL(path.join(ssrDir, 'entry-server.js')).href)
 
-const template = await readFile(path.join(dist, 'index.html'), 'utf8')
+let template = await readFile(path.join(dist, 'index.html'), 'utf8')
+
+/* The stylesheet (~10 KB gzipped) goes inline in each page instead of as a
+   <link>: the page paints as soon as its HTML arrives, without waiting on a
+   second, render-blocking request. Its url()s are absolute (/assets/...). */
+const cssLink = /<link rel="stylesheet"[^>]*href="\/(assets\/[^"]+\.css)"[^>]*>/
+const cssMatch = template.match(cssLink)
+if (!cssMatch) throw new Error('prerender: stylesheet link not found in dist/index.html')
+const css = await readFile(path.join(dist, cssMatch[1]), 'utf8')
+if (/url\((?!["']?(\/|data:|https?:))/.test(css)) throw new Error('prerender: CSS has relative url(), cannot inline')
+template = template.replace(cssLink, () => `<style>${css}</style>`)
 const manifest = JSON.parse(await readFile(path.join(dist, '.vite', 'manifest.json'), 'utf8'))
 
 /* Each page's chunk is requested by the entry only once it runs, one round
