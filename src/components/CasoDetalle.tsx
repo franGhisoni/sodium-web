@@ -47,29 +47,6 @@ export function CasoDetalle({ sections }: { sections: DetailSection[] }) {
   );
 }
 
-export const DETALLE_HERMES: DetailSection[] = [
-  {
-    title: 'De la fuente a la nota publicada',
-    lead: 'Hermes procesa noticias con criterio editorial: automatiza lo repetitivo y deja a la vista cada decisión para que el equipo pueda revisarla.',
-    flow: [
-      ['Capta', 'Toma noticias de distintos medios, con secciones y límites configurables para cada uno.'],
-      ['Evalúa y reescribe', 'Puntúa el interés de cada noticia y la reescribe con IA.'],
-      ['Elige la imagen', 'Busca candidatas, las califica y descarta logos, zócalos y marcas de agua. Si ninguna sirve, puede generar una.'],
-      ['Distribuye', 'Publica de forma manual o automática, con flujos por fuente, categoría, puntaje y horario.'],
-    ],
-  },
-  {
-    title: 'Automático, pero no una caja negra',
-    lead: 'El sistema explica lo que hizo y avisa cuando algo falla, para que el equipo confíe en la automatización.',
-    grid: [
-      ['Decisiones a la vista', 'Qué protagonista detectó, qué buscó, qué imágenes consideró y por qué aceptó o descartó cada una.'],
-      ['Avisos operativos', 'Notifica cuando un scraping no trae resultados o falla una publicación o un flujo.'],
-      ['Control del equipo', 'Cambiar la imagen, pegar una propia o regenerarla, y encontrar cualquier nota con el buscador global.'],
-      ['Configurable sin código', 'Modelos, prompts, umbrales, fuentes y secciones se ajustan desde el panel.'],
-    ],
-  },
-];
-
 export const DETALLE_FLUX: DetailSection[] = [
   {
     title: 'Del dato suelto al informe',
