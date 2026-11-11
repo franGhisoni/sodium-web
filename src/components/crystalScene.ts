@@ -754,7 +754,12 @@ export type SceneLayers = 'all' | 'world' | 'pinned';
 /* One clock for both canvases, so their backdrops agree pixel for pixel. */
 const EPOCH = performance.now();
 
-export function startScene(canvas: HTMLCanvasElement, layers: SceneLayers = 'all'): (() => void) | null {
+export function startScene(
+  canvas: HTMLCanvasElement,
+  layers: SceneLayers = 'all',
+  /** Called (once) if the device can't keep up; the caller then stops the scene. */
+  onSlow?: () => void,
+): (() => void) | null {
   const pinned = layers === 'pinned';
   const hasWorld = layers !== 'pinned';
   const hasPinned = layers !== 'world';
@@ -1588,8 +1593,27 @@ export function startScene(canvas: HTMLCanvasElement, layers: SceneLayers = 'all
     renderScenePasses();
   };
 
+  /* Watchdog: skip the first frames (shader compile, warmup), then if most
+     frames over a short window take far longer than a frame budget, the
+     device is rendering on the CPU or is overloaded. Hand back to the CSS
+     backdrop instead of keeping the main thread busy. */
+  const WARMUP_FRAMES = 4;
+  const SAMPLE_FRAMES = 24;
+  const SLOW_FRAME_MS = 70;
+  let frames = 0;
+  let slowFrames = 0;
+  let prevNow = 0;
   const loop = (now: number) => {
     render(now);
+    if (onSlow && frames <= WARMUP_FRAMES + SAMPLE_FRAMES) {
+      frames++;
+      if (frames > WARMUP_FRAMES && prevNow && now - prevNow > SLOW_FRAME_MS) slowFrames++;
+      prevNow = now;
+      if (frames === WARMUP_FRAMES + SAMPLE_FRAMES && slowFrames > SAMPLE_FRAMES * 0.6) {
+        onSlow();
+        return;
+      }
+    }
     raf = requestAnimationFrame(loop);
   };
 

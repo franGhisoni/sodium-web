@@ -34,7 +34,7 @@ interface Case {
 const CASES: Case[] = [
   {
     id: 'peitho',
-    img: '/cases/peitho.png',
+    img: '/cases/peitho.webp',
     tag: 'AGENTE IA · COMERCIAL',
     name: 'Peitho',
     desc: 'Agente que atiende, califica y cierra leads por WhatsApp, Instagram y web. Integrado al CRM.',
@@ -44,7 +44,7 @@ const CASES: Case[] = [
   },
   {
     id: 'peitho-estates',
-    img: '/cases/peitho-estates.png',
+    img: '/cases/peitho-estates.webp',
     tag: 'AGENTE IA · REAL ESTATE',
     name: 'Peitho · Real Estate',
     desc: 'CRM inmobiliario con agente conversacional: pipeline de leads con scoring IA, agenda de visitas, siguiente mejor acción y reactivación de contactos fríos.',
@@ -54,7 +54,7 @@ const CASES: Case[] = [
   },
   {
     id: 'sodium-retail',
-    img: '/cases/retail.jpg',
+    img: '/cases/retail.webp',
     tag: 'GESTIÓN · RETAIL',
     name: 'Sodium Retail',
     desc: 'Una plataforma para varios negocios: kiosco, supermercado, ferretería y alquiler de ski, cada uno con su caja, stock, usuarios y facturación electrónica, y un panel para verlos todos juntos.',
@@ -63,7 +63,7 @@ const CASES: Case[] = [
   },
   {
     id: 'impacto-castex',
-    img: '/cases/impacto.jpg',
+    img: '/cases/impacto.webp',
     tag: 'MEDIO DIGITAL · NOTICIAS',
     name: 'Impacto Castex',
     desc: 'Diario digital de Eduardo Castex, La Pampa: sitio público con radio en vivo y panel de redacción accesible, integrado con Hermes y con placas y copys para redes generados con IA.',
@@ -93,7 +93,7 @@ const CASES: Case[] = [
   },
   {
     id: 'rosaura',
-    img: '/cases/rosaura.jpg',
+    img: '/cases/rosaura.webp',
     tag: 'WEB · HOSPITALITY',
     name: 'Rosaura',
     desc: 'Sitio para experiencia gastronómica premium de Escorihuela Gascón. Diseño editorial, reservas integradas.',
@@ -131,7 +131,7 @@ const CASES: Case[] = [
   },
   {
     id: 'zurgo',
-    img: '/cases/zurgo.jpg',
+    img: '/cases/zurgo.webp',
     live: 'https://demo-production-9fef.up.railway.app/',
     tag: 'AGENTE IA · MOVILIDAD',
     name: 'Zur Go',
@@ -142,7 +142,7 @@ const CASES: Case[] = [
   },
   {
     id: 'house24',
-    img: '/cases/house24.jpg',
+    img: '/cases/house24.webp',
     live: 'https://house24-demo-production.up.railway.app/',
     tag: 'GESTIÓN · SALUD DOMICILIARIA',
     name: 'House24',
@@ -151,7 +151,7 @@ const CASES: Case[] = [
   },
   {
     id: 'instituto-ghisoni',
-    img: '/cases/instituto.png',
+    img: '/cases/instituto.webp',
     tag: 'SISTEMA CLÍNICO · SALUD',
     name: 'Instituto Ghisoni',
     desc: 'Sistema clínico para consultorios de ginecología: agenda sin solapamientos, fichas de pacientes, consultas, estudios en PDF, roles con auditoría y migración del sistema anterior.',
@@ -161,7 +161,7 @@ const CASES: Case[] = [
   },
   {
     id: 'lakshmi',
-    img: '/cases/lakshmi.jpg',
+    img: '/cases/lakshmi.webp',
     tag: 'ECOSISTEMA · EXPERIENCIA 3D · AGENTE IA',
     name: 'Lakshmi · Intencionate',
     desc: 'Una reserva que se siente como un objeto: el golden ticket 3D se entrega con una animación de entrada, se gira con el dedo o el mouse y se rasga por la línea perforada para confirmar el turno. Detrás, un ecosistema completo para Lakshmi Masajes: sitio React, agente conversacional con la voz de la marca, vouchers de regalo y panel de gestión por roles.',
@@ -274,7 +274,7 @@ const hasDetail = (c: Case) => Boolean(c.detail || c.sections);
 
 function CaseShot({ c }: { c: Case }) {
   if (c.img) {
-    return <img src={c.img} alt={`Captura de ${c.name}`} loading="lazy" decoding="async" />;
+    return <img src={c.img} alt={`Captura de ${c.name}`} width={1440} height={900} loading="lazy" decoding="async" />;
   }
   return c.shot ? <c.shot /> : null;
 }

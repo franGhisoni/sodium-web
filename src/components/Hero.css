@@ -76,11 +76,17 @@
 
 .hero-copy { max-width: 640px; position: relative; z-index: 1; }
 
+.hero-heading {
+  margin: 0;
+  font: inherit;
+}
+
 .hero-pill {
   margin-bottom: 32px;
 }
 
 .hero-title {
+  display: block;
   font-size: clamp(56px, 8vw, 120px);
   line-height: 1.06;
   letter-spacing: -0.05em;

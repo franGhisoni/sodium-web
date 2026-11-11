@@ -1,7 +1,18 @@
+import type React from 'react';
 import { Glass } from './Glass';
 import { SceneAnchor } from './SceneAnchor';
 import { useContactLink } from '../contact';
 import './Hero.css';
+
+/** Splits a headline into word spans for the staggered CSS entrance. */
+function Words({ text, from }: { text: string; from: number }) {
+  return text.split(' ').map((word, i) => (
+    <span key={i}>
+      {i > 0 && ' '}
+      <span className="kw" style={{ '--i': from + i } as React.CSSProperties}>{word}</span>
+    </span>
+  ));
+}
 
 export function Hero() {
   const contact = useContactLink();
@@ -10,20 +21,25 @@ export function Hero() {
       {/* First view: just the promise, two actions and the prism. */}
       <div className="hero-fold container">
         <div className="hero-copy">
-          <span className="pill hero-pill">
-            <span className="pill-dot" />
-            IA APLICADA · SISTEMAS · ADOPCIÓN
-          </span>
-
-          <h1 className="hero-title display">
-            IA aplicada.
-            <br />
-            <span className="hero-title-accent">Impacto real.</span>
+          {/* The h1 names the company and what it does (the pill line) and
+              carries the headline. Headline words are server-rendered spans
+              animated by CSS, so the text is in the HTML and paints at once. */}
+          <h1 className="hero-heading">
+            <span className="pill hero-pill">
+              <span className="pill-dot" />
+              Sodium · Software a medida e IA
+            </span>{' '}
+            <span className="hero-title display">
+              <Words text="IA aplicada." from={0} />
+              <br />
+              <span className="hero-title-accent"><Words text="Impacto real." from={2} /></span>
+            </span>
           </h1>
 
           <p className="hero-sub">
-            Intervenimos los flujos de trabajo clave de tu empresa para acelerar
-            decisiones, ejecución y crecimiento.
+            Somos una software factory argentina: desarrollamos software a medida e
+            integramos inteligencia artificial en los flujos de trabajo clave de tu
+            empresa para acelerar decisiones, ejecución y crecimiento.
           </p>
 
           <div className="hero-actions">
@@ -46,7 +62,7 @@ export function Hero() {
         <SceneAnchor kind="prism" className="hero-prism-anchor" rotation={5} beamAngle={-10} />
         <SceneAnchor kind="prism" className="hero-prism-anchor--mobile" rotation={12} beamAngle={0} />
 
-        <a href="#hero-detalle" className="hero-scroll" aria-label="Bajar al contenido">
+        <a href="#hero-detalle" className="hero-scroll">
           <span>Cómo trabajamos</span>
           <span className="hero-scroll-line" aria-hidden="true" />
         </a>
@@ -92,9 +108,9 @@ function HeroWorkflowCard() {
       <header className="hero-card-head">
         <div>
           <span className="hero-card-label">Flujo clave <span className="muted">/ comercial</span></span>
-          <h3 className="hero-card-title display">
+          <p className="hero-card-title display">
             Menos fricción. <br /><strong>Más capacidad.</strong>
-          </h3>
+          </p>
         </div>
         <span className="hero-card-tag">
           <span className="pill-dot" />

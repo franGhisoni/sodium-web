@@ -41,6 +41,48 @@
   }
 }
 
+/* ─── Hero headline: the same rack focus, driven by CSS ─────────────
+   Its word spans come in the server-rendered HTML, so the entrance runs
+   on first paint without waiting for JavaScript. The pill, subtitle and
+   actions rise in right after (they used to wait for useReveal). */
+.hero-title .kw {
+  display: inline-block;
+  transform-origin: 50% 100%;
+  animation: heroWordIn 1200ms var(--ease-out) both;
+  animation-delay: calc(80ms + var(--i) * 80ms);
+}
+@keyframes heroWordIn {
+  0% {
+    opacity: 0;
+    filter: blur(14px);
+    transform: perspective(900px) translate3d(0, 0.18em, -160px) rotateX(-24deg) scale(1.08);
+  }
+  55% { opacity: 1; }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+}
+.hero-pill,
+.hero-sub,
+.hero-actions {
+  animation: revealUp 850ms var(--ease-out) both;
+}
+.hero-sub { animation-delay: 260ms; }
+.hero-actions { animation-delay: 360ms; }
+@media (max-width: 768px), (pointer: coarse) {
+  .hero-title .kw {
+    animation-name: heroWordInLite;
+    animation-duration: 680ms;
+    animation-delay: calc(60ms + var(--i) * 65ms);
+  }
+}
+@keyframes heroWordInLite {
+  from { opacity: 0; transform: translate3d(0, 0.32em, 0); }
+  to { opacity: 1; transform: none; }
+}
+
 /* Gradient text: words are their own boxes, so the clip lives on them. */
 .section-title em .kw,
 .hero-title-accent .kw {
