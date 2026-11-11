@@ -1,8 +1,40 @@
+import { lazy, Suspense, useEffect, useState } from 'react';
 import type React from 'react';
 import { Glass } from './Glass';
 import { SceneAnchor } from './SceneAnchor';
 import { useContactLink } from '../contact';
+import { afterLoadAndIdle, hasHardwareWebGL } from '../webgl';
 import './Hero.css';
+
+/* three.js + react-three-fiber live in their own chunk, loaded on demand. */
+const HeroCrystal = lazy(() => import('./HeroCrystal'));
+
+/**
+ * The refractive cube over the hero cards. Decorative, so it only mounts
+ * after load, on wide screens with a real GPU and motion allowed; the
+ * prerendered HTML and crawlers never include it.
+ */
+function HeroCrystalSlot() {
+  const [on, setOn] = useState(false);
+  useEffect(
+    () =>
+      afterLoadAndIdle(() => {
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        if (!matchMedia('(min-width: 901px)').matches) return;
+        const params = new URLSearchParams(location.search);
+        if (params.has('nogl')) return;
+        /* `?gl` forces it on, to test on software renderers on purpose. */
+        if (params.has('gl') || hasHardwareWebGL()) setOn(true);
+      }),
+    [],
+  );
+  if (!on) return null;
+  return (
+    <Suspense fallback={null}>
+      <HeroCrystal />
+    </Suspense>
+  );
+}
 
 /** Splits a headline into word spans for the staggered CSS entrance. */
 function Words({ text, from }: { text: string; from: number }) {
@@ -92,6 +124,7 @@ export function Hero() {
         </div>
 
         <div className="hero-stage">
+          <HeroCrystalSlot />
           <HeroWorkflowCard />
           <HeroReviewCard />
           <HeroStackCard />
