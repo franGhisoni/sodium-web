@@ -26,6 +26,13 @@
 	@www host www.sodium.ar
 	redir @www https://sodium.ar{uri} permanent
 
+	# The old address of the site. If it is ever pointed at this service, it
+	# answers with a permanent (301) redirect to the same page on sodium.ar,
+	# so Google never treats it as a second copy of the site. Only that exact
+	# host matches: Railway's health check and *.up.railway.app keep working.
+	@legacy host sodium.ghisoni.com.ar
+	redir @legacy https://sodium.ar{uri} permanent
+
 	header {
 		X-Content-Type-Options "nosniff"
 		-Server
