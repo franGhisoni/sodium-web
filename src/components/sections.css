@@ -927,7 +927,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 32px;
 }
-.footer-cols h5 {
+.footer-cols .footer-col-title {
   font-family: var(--mono);
   font-size: 11px;
   color: var(--ink-3);
@@ -966,7 +966,7 @@
 .footer-meta {
   font-family: var(--mono);
   font-size: 11px;
-  color: var(--ink-4);
+  color: var(--ink-3);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;

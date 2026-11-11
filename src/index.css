@@ -105,6 +105,13 @@ img, svg { display: block; max-width: 100%; }
   height: calc(100lvh + 280px);
   will-change: transform;
 }
+/* The scene starts after load (Crystal.tsx) and fades in over the CSS
+   backdrop, which stays as the background wherever it doesn't run. */
+.scene-wrap .scene-canvas {
+  opacity: 0;
+  transition: opacity 900ms ease;
+}
+.scene-on .scene-wrap .scene-canvas { opacity: 1; }
 .scene-canvas {
   position: fixed;
   top: 0;

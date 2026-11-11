@@ -5,7 +5,7 @@ import './kinetic.css';
  * Kinetic typography, applied to the page's existing markup (DOM-level, like
  * useReveal, so the section components stay plain JSX):
  *
- *  - Headings (.hero-title, .section-title, .cta-title) are split into words
+ *  - Headings (.section-title, .cta-title) are split into words
  *    that pull focus (blur → sharp) while dollying in, staggered, once they
  *    scroll into view.
  *  - The manifesto text lights up word by word as you scroll through it.
@@ -15,8 +15,16 @@ import './kinetic.css';
  * Everything is skipped under prefers-reduced-motion.
  */
 
-const HEADINGS = '.hero-title, .section-title, .cta-title';
+/* The hero headline animates from CSS (kinetic.css), not from here. */
+const HEADINGS = '.section-title, .cta-title';
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+
+/** Already on screen when the script runs (e.g. a reload mid-page): the text
+ *  was painted from the HTML, so hiding it to animate it again would flash. */
+export const inViewNow = (el: Element) => {
+  const r = el.getBoundingClientRect();
+  return r.bottom > 0 && r.top < innerHeight;
+};
 
 /** Wrap every word of every text node under `root` in `wrap(word)` elements. */
 function wrapWords(root: HTMLElement, make: (word: string) => HTMLElement) {
@@ -53,6 +61,7 @@ function splitHeadings(): Array<() => void> {
   );
 
   for (const el of els) {
+    if (!el.dataset.kinetic && inViewNow(el)) continue;
     if (!el.dataset.kinetic) {
       el.dataset.kinetic = '1';
       el.setAttribute('aria-label', (el.textContent ?? '').replace(/\s+/g, ' ').trim());

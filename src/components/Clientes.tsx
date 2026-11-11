@@ -47,7 +47,7 @@ const CLIENTS: ClientItem[] = [
     role: 'Dashboards Analíticos & Lead Scoring IA',
     desc: 'Infraestructura comercial y dashboards analíticos multi-marca con IA para seguimiento de inversión publicitaria y sistemas de respuesta inmediata en WhatsApp.',
     highlight: '$29.4M USD analizados · Calificación de leads 24/7',
-    logo: '/clients/fluxone.png',
+    logo: '/clients/fluxone.webp',
     logoClass: 'client-logo--flux',
   },
   {
